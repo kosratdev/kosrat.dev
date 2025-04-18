@@ -20,6 +20,7 @@ jobs:
         run: biome ci ./src --reporter=github
 
   check:
+    needs: code_quality
     runs-on: ubuntu-latest
     name: Astro Check for Node.js 22
     steps:
@@ -43,6 +44,7 @@ jobs:
         run: pnpm astro check
 
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout your repository using git
