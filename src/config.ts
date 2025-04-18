@@ -71,7 +71,7 @@ export const profileConfig: ProfileConfig = {
 		},
 		{
 			name: "Email",
-			icon: "material-symbols:mail-rounded", 
+			icon: "material-symbols:mail-rounded",
 			url: "mailto:kosrat.d.ahmad@gmail.com",
 		},
 	],
