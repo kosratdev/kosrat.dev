@@ -1,11 +1,11 @@
 ---
 title: "Muslim Data: A library for Islamic Apps"
-published: 2025-04-21
-description: ''
-image: ''
-tags: []
-category: ''
-draft: true
+published: 2025-04-24
+description: 'Muslim Data is an open-source library for Islamic app developers, providing prayer times, Azkars, Names of Allah, and location services for Android, iOS, and Flutter apps.'
+image: 'cover.webp'
+tags: [android, ios, flutter, package, prayer-times]
+category: 'Software Development'
+draft: false
 ---
 
 ## Overview
@@ -16,7 +16,7 @@ However, not all countries follow these calculated methods. For instance, in Ira
 
 Back in 2014, I noticed this gap in our local Muslim community — people couldn’t rely on the available prayer apps due to the use of fixed prayer times. To address this, I started developing a prayer app called **MyPrayers**. It offers both fixed and auto-calculated prayer times, along with other features such as Azkars, Qibla direction, the 99 Names of Allah, and more. The **MyPrayers** app is available on [Google Play](https://play.google.com/store/apps/details?id=com.kosratdahmad.myprayers&pcampaignid=web_share), [AppGallery](https://appgallery.huawei.com/app/C101066833), and the [App Store](https://apps.apple.com/us/app/my-prayers/id1390015257).
 
-Since then, my goal has been to support developers who want to build Muslim apps by creating reusable and easy-to-integrate packages for Android, iOS, and Flutter. In 2020, I began working on an open-source library called Muslim Data, which provides all the core data needed for a prayer app. This includes accurate prayer times (both fixed and calculated), Azkars, Names of Allah, multi-language support and more — all accessible with just a few lines of code.
+Since then, my goal has been to support developers who want to build Islamic apps by creating reusable and easy-to-integrate packages for **Android**, **iOS**, and **Flutter**. In 2020, I began working on an open-source library called **Muslim Data**, which provides all the core data needed for a prayer app. This includes accurate prayer times (both fixed and calculated), Azkars, Names of Allah, multi-language support and more — all accessible with just a few lines of code.
 
 The **Muslim Data** project is available across all three platforms:
 
@@ -24,11 +24,11 @@ The **Muslim Data** project is available across all three platforms:
 ::github{repo="my-prayers/muslim-data-ios"}
 ::github{repo="my-prayers/muslim-data-flutter"}
 
-The **Muslim Data** follows the `repository design pattern` which only exposes one class for providing data named `MuslimRepository()`. In this article, I’ll briefly showcase the functionality of the Muslim Data package. For more details, feel free to explore the repositories linked above.
+The **Muslim Data** shipped with a prepopulated database for its core functionality and follows the `repository design pattern` which only exposes one class for providing data named `MuslimRepository()`. In this article, I’ll briefly showcase the functionality of the Muslim Data package. For more details, feel free to explore the repositories linked above.
 
-## Locations
+## Location Service
 
-The **Muslim Data** package has prepopulated database contains some useful location functionalities that helps developers to build an app to not depend on the internet to find location or getting the of the location. It provides **Offline Location Search**, **Geocoding**, and **Reverse Geocoding** and also the Location object has been used while getting a prayer time in the package. 
+The **Muslim Data** package has prepopulated database contains some useful location functionalities that helps developers to build an app to not depend on the internet to find location or getting a location details by latitude and longitude. It provides **Offline Location Search**, **Geocoding**, and **Reverse Geocoding** and also the Location object has been used while getting a prayer time in the package. 
 
 ### Flutter Sample Usage 
 
@@ -80,6 +80,7 @@ Future<void> reverseGeocode() async {
 ```
 
 ## Prayer Times
+
 The `location` object holds `hasFixedPrayerTime` property to indicate whether use auto calculated prayer times or fetch it from the database. So by provide the (`Location`, `PrayerAttribute`, and `Date`) objects to the `getPrayerTimes` method, you can easily get prayer times of that location as shown below.
 
 ### Flutter Sample Usage
