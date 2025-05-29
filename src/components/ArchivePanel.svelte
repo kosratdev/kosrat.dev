@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 
+import { UNCATEGORIZED } from "@constants/constants";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { getPostUrlBySlug } from "../utils/url-utils";
@@ -12,7 +13,6 @@ export let sortedPosts: Post[] = [];
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
 categories = params.has("category") ? params.getAll("category") : [];
-const uncategorized = params.get("uncategorized");
 
 interface Post {
 	slug: string;
@@ -54,12 +54,10 @@ onMount(async () => {
 
 	if (categories.length > 0) {
 		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && categories.includes(post.data.category),
+			(post) =>
+				(post.data.category && categories.includes(post.data.category)) ||
+				(!post.data.category && categories.includes(UNCATEGORIZED)),
 		);
-	}
-
-	if (uncategorized) {
-		filteredPosts = filteredPosts.filter((post) => !post.data.category);
 	}
 
 	const grouped = filteredPosts.reduce(
@@ -96,10 +94,10 @@ onMount(async () => {
                     <div
                             class="h-3 w-3 bg-none rounded-full outline outline-[var(--primary)] mx-auto
                   -outline-offset-[2px] z-50 outline-3"
-                    ></div>
+                    />
                 </div>
                 <div class="w-[70%] md:w-[80%] transition text-left text-50">
-                    {group.posts.length} {i18n(group.posts.length === 1 ? I18nKey.postCount : I18nKey.postsCount)}
+                    {group.posts.length} {i18n(I18nKey.postsCount)}
                 </div>
             </div>
 
@@ -124,7 +122,7 @@ onMount(async () => {
                        outline-[var(--card-bg)]
                        group-hover:outline-[var(--btn-plain-bg-hover)]
                        group-active:outline-[var(--btn-plain-bg-active)]"
-                            ></div>
+                            />
                         </div>
 
                         <!-- post title -->
