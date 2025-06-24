@@ -1,0 +1,9 @@
+html.dark .gitTitleText {
+  fill: #ccc !important;
+}
+
+html.dark .branch {
+  stroke-width: 1 !important;
+  stroke: lightgrey !important;
+  stroke-dasharray: 2 !important;
+}
