@@ -5,9 +5,6 @@ import Giscus from "./Giscus.svelte";
 interface Props {
 	post: CollectionEntry<"posts">;
 }
-const { id, data, slug } = Astro.props.post;
-const path = `/posts/${slug}`;
-const url = `${Astro.site?.href}${path}`;
 let commentService = "giscus";
 ---
 <div class="card-base p-6 mb-4">
