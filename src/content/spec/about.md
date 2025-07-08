@@ -1,6 +1,6 @@
 # About
 
-**`Kosrat`** is a passionate mobile app developer with over 10 years of experience crafting native apps using Swift and Kotlin.  He's not just a coder, but also a leader, having guided development teams for over 5 years.
+**`Kosrat`** is a passionate mobile app developer with over 10 years of experience crafting native apps using Swift and Kotlin, and a proven track record in Flutter development. He's not just a coder, but also a leader, having guided development teams for over 5 years.
 
 [GitHub](https://github.com/kosratdev)  ||  [Linkedin](https://www.linkedin.com/in/kosratahmad/)  ||  [Contact Me](mailto:kosrat.d.ahmad@gmail.com)
 
