@@ -38,6 +38,10 @@ export const siteConfig: SiteConfig = {
 		//   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
 		// }
 	],
+	externalLinkAttributes: {
+		target: "_blank", // Open external links in a new tab, leave blank to open in the same tab
+		rel: "noopener noreferrer",
+	},
 };
 
 export const navBarConfig: NavBarConfig = {

@@ -14,6 +14,20 @@ const className = Astro.props.class;
 </div>
 
 <script>
+import { siteConfig } from "@/config";
+const externalLinkAttributes = siteConfig.externalLinkAttributes;
+
+const observer = new MutationObserver(() => {
+    observer.disconnect();
+    handleExternalLinks();
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+
+document.addEventListener("DOMContentLoaded", () => {
+    handleExternalLinks();
+});
+
 document.addEventListener("click", function (e: MouseEvent) {
     const target = e.target as Element | null;
     if (target && target.classList.contains("copy-btn")) {
@@ -40,4 +54,18 @@ document.addEventListener("click", function (e: MouseEvent) {
         target.setAttribute("data-timeout-id", newTimeoutId.toString());
     }
 });
+
+function handleExternalLinks() {
+    if (!externalLinkAttributes) return;
+    const links = document.querySelectorAll("a");
+    links.forEach(link => {
+      try {
+        const url = new URL(link.href);
+        if (url.hostname !== window.location.hostname) {
+          externalLinkAttributes.rel && link.setAttribute("rel", externalLinkAttributes.rel);
+          externalLinkAttributes.target && link.setAttribute("target", externalLinkAttributes.target);
+        }
+      } catch {}
+    });
+  }
 </script>
