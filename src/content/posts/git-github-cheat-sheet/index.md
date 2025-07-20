@@ -87,7 +87,7 @@ git add .
 git commit
 
 # Displays the difference between two versions of a file.
-git diffas
+git diff
 ```
 
 ### Refresh gitignore
