@@ -20,7 +20,7 @@ But what exactly makes an app "**production-ready**"? Is it just about having a 
 
 Through this **Flutter Ship** series, we'll explore the essential components that transform a basic app into a production-ready solution:
 
-1. Flutter Ship 01: Git & GitHub Workflow --> (_In Progress_)
+1. [Flutter Ship 01: Git & GitHub Workflow](git-github/)
 2. Flutter Ship 02: Flavors --> (_Planned_)
 3. Flutter Ship 03: Luncher Icon --> (_Planned_)
 4. Flutter Ship 04: Splash Screen --> (_Planned_)

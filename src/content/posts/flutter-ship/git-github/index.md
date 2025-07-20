@@ -1,8 +1,8 @@
 ---
-title: "Flutter Ship: Git & GitHub Workflow"
-published: 2025-06-04
-description: ""
-image: ""
+title: "Flutter Ship 01: Git & GitHub Workflow"
+published: 2025-07-20
+description: "Learn to set up a production-ready Git & GitHub workflow for Flutter projects. Covers branching strategy, conventional commits, automated changelogs, git hooks, and CI/CD with GitHub Actions."
+image: "cover.webp"
 tags: [flutter, production-ready, flutter-ship, git, github]
 category: "Flutter"
 draft: true
@@ -10,17 +10,17 @@ draft: true
 
 # Overview
 
-Twenty years ago, **Git** emerged as a version control system (VCS) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration and sharing.
+Twenty years ago, **Git** emerged as a version control system (**VCS**) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration and sharing.
 
-In this post, I will show you how to setup a **production-ready Git & GitHub workflow** for your project. As you may know, this article is a part of the [**Flutter Ship**](../) series, which guides you in shipping a production-ready Flutter app. However, the principle discussed can be applied on **other languages or frameworks**.
+In this post, I will show you how to setup a **production-ready Git & GitHub workflow** for your project. As you may know, this article is a part of the [**Flutter Ship**](../) series, which guides you in shipping a production-ready Flutter app. However, these principles can be applied to **any language or framework**.
 
 By the end of this article, you will learn the following:
 
-1.  How to establish a robust **branching strategy** for different environments.
+1.  How to implement a simple but effective **branching strategy**.
 2.  How to adopt a **commit message standard** for a clean history and automated changelogs.
 3.  How to automatically generate and manage **project changelogs**.
 4.  How to use **Git hooks** to automate local checks, like formating & linting files, linting commits, and running tests.
-5.  How to implement a **CI/CD pipeline** with **GitHub Actions** to automate your workflow.
+5.  How to implement a **GitHub PR Checks** with **GitHub Actions** to automate your workflow.
 
 If this sounds like what you're looking for, let's dive in!
 
@@ -32,69 +32,26 @@ The solution is to use short-lived branches for every new piece of work, whether
 
 The core idea is illustrated below:
 
-```mermaid
----
-title: Git Branch Strategy Diagram
-config:
-   theme: 'base'
-   gitGraph:
-      showCommitLabel: false
-      showBranches: true
-      parallelCommits: true
----
-gitGraph
-   commit
-   branch hotfix
-   branch feature-x
-   checkout hotfix
-   commit
-   checkout main
-   merge hotfix
-   checkout feature-x
-   commit
-   commit
-   commit
-   checkout main
-   merge feature-x
-   commit tag: '1.0.0'
-   branch feature-y
-   checkout feature-y
-   commit
-   commit
-   checkout main
-   merge feature-y
-   commit
-   branch task-id-task-title
-   checkout task-id-task-title
-   commit
-   commit
-   checkout main
-   merge task-id-task-title tag: '1.1.0'
-```
+![Github Flow](github-flow.webp)
 
 **Branch Types Explained**
 
 - **Main Branch (`main`)**: This is the stable branch that always reflects the latest production-ready state of your project. All releases and deployments are made from here.
-- **Feature branches (`feature-*` or `task-id-*`)**: Used for developing new features, enhancements, or tasks. If you use a task management tool (like Jira), you can name your branch after the task or ticket ID (e.g., `ab-123-add-login`). Each feature/task branch is short-lived and merged back into `main` via a pull request after review and testing.
-- **Hotfix branches (`hotfix-*`)**: Created to quickly address critical bugs or issues found in production. Hotfixes are merged back into `main` as soon as the fix is verified.
+- **Feature branches (`feature-*` or `task-id-*`)**: Used for developing new features, enhancements, bug fixings or tasks. If you use a task management tool (like Jira), you can integrate with it and name your branch after the task or ticket ID (e.g., `ab-123-add-login`). Each feature/task branch is short-lived and merged back into `main` via a pull request after review and testing.
 
-This model also supports different development environments with ease. When you complete a feature or task, you open a pull request (PR). You can configure a GitHub Action (or any other CI/CD service) to run tests and deploy the branch to a preview environment, such as `feature-x.example.com`, for internal review by developers or QA engineers.
-
-After the PR is merged, you can trigger a job to deploy the changes to a staging environment. This allows other departments or clients to provide feedback or report issues. Finally, deploying to production is as simple as tagging the `main` branch.
-
-For mobile projects, while you can't deploy preview environments like you can for web apps, you can automate the generation of **APK**s for Android and **IPA**s for iOS, and distribute them to testers or users via your chosen platforms. I’ll cover Flutter Continuous Delivery (CD) in detail in a future article.
+This model also supports different development environments with ease. When you complete a feature or task, you open a pull request (PR). You can configure a GitHub Action (or any other CI/CD service) to run tests and automate the generation of **APK**s for Android and **IPA**s for iOS, and distribute them to testers or users via your chosen platforms. I’ll cover Flutter Continuous Delivery (CD) in detail in a future article.
 
 :::tip[Git & Github Cheat Sheet]
 I assume you already know the basics of Git and GitHub, so I won’t include basic Git commands here. If you need a refresher, check out my [Git & GitHub Cheatsheet](../../git-github-cheat-sheet/) article.
 :::
 
 :::important[Git Merge Recommendation]
-If you merge branches locally, `merge --no-ff` is highly recommended. The `--no-ff` flag causes the merge to always create a new commit object, even if the merge could be performed with a fast-forward. This avoids losing information about the historical existence of a feature branch and groups together all commits that together added the feature.
+If you merge branches locally, `merge --no-ff` is highly recommended. The `--no-ff` flag causes the merge to always create a new commit object, even if the merge could be performed with a fast-forward. This avoids losing information about the historical existence of a feature branch and groups all commits that together added the feature.
 :::
 
 # Commit Messages
 
-Commit messages are your working history. While the probability of reading them is low, they are still valuable for maintaining a good commit history and understanding changes later on. At least once in a while, you need to read the history to get more details about an emerging issue. Furthermore, in most software projects, the changelog will be generated based on those commit messages to show the release changes between versions. So what could you find or generate if you have the following history?
+Commit messages are your working history. While the probability of reading them is low, they are still valuable for maintaining a good commit history and understanding changes later on. At least once in a while, you need to read the history to get more details about an emerging issue. Furthermore, in most software projects, the **changelog** will be generated based on those commit messages to show the release changes between versions. So what could you find or generate if you have the following history?
 
 ```bash title="git log --graph --online"
 * 4dcd0dc fix color
@@ -119,7 +76,7 @@ To have team-level agreed standards for git commit messages, I highly recommend 
 [optional footer(s)]
 ```
 
-Check out the following example that uses conventional commit messages, which are much easier to understand and allow you to easily generate changelogs:
+Check out the following example that uses **conventional commit** messages, which are much easier to understand and allow you to easily generate **changelogs**:
 
 ```bash title="git log --graph --online"
 * 4dcd0dc Update themeColor fixed property to true
@@ -136,67 +93,47 @@ Check out the following example that uses conventional commit messages, which ar
 * 31a1ef8 build: Remove astro compress
 ```
 
-## Common Commit Types
-
-Here's a quick reference for the most common conventional commit types with Flutter/mobile development examples:
-
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat(auth): add biometric login support` |
-| `fix` | Bug fix | `fix(ui): resolve keyboard overflow on login screen` |
-| `docs` | Documentation | `docs: update README with Firebase setup instructions` |
-| `style` | Code style changes | `style: format code with dart format` |
-| `refactor` | Code refactoring | `refactor(api): simplify HTTP client implementation` |
-| `test` | Adding tests | `test(auth): add unit tests for login validation` |
-| `chore` | Maintenance tasks | `chore: update Flutter SDK to 3.24.0` |
-| `perf` | Performance improvements | `perf(list): optimize ListView rendering for large datasets` |
-| `build` | Build system changes | `build: update Android Gradle Plugin to 8.1.0` |
-| `ci` | CI/CD changes | `ci: add automated APK generation workflow` |
-
-## Breaking Changes
-
-For breaking changes, add `!` after the type or include `BREAKING CHANGE:` in the footer:
-
-```bash
-feat!: migrate to Material Design 3
-
-BREAKING CHANGE: Updated theme system requires manual migration of custom colors. See migration guide in docs/migration.md
-```
+:::tip[Commit Structure]
+I highly recommend you to read the **[Conventional Commits](https://www.conventionalcommits.org)** documentation to get more information about the commit structure like type, scope, description, body, fotter, and breaking changes.
+:::
 
 ## AI-Generated Commit Messages
 
-There are many tools that can help you write better conventional commits, and there are also AI tools to generate them. I've used various tools to generate commit messages, but recently I started using **GitHub Copilot** to generate conventional commit messages. By default, Copilot doesn't generate conventional commit messages, so we need to set a custom prompt in the settings.
+There are many tools that can help you write better conventional commits, and there are also AI tools to generate them. I used to test various tools to create commit messages, but recently I started using **GitHub Copilot** to generate conventional commit messages. By default, Copilot doesn't generate conventional commit messages, so we need to set a custom prompt in the settings.
 
 ### VSCode Copilot Configuration for Commit Messages
 
-If you're using VS Code with workspace-based settings, you can find the settings file at `your-project > .vscode > settings.json`. For user-based settings, navigate to: 
-**Settings > Extensions > GitHub Copilot Chat > Commit Message Generation**
+If you're using VS Code with workspace-based settings, you can find the settings file at `your-project > .vscode > settings.json`. 
 
+For user-based settings, navigate to: `Settings > Extensions > GitHub Copilot Chat > Commit Message Generation` as attached below:
 ![copilot settings](copilot-setting.png)
 
 After you find the settings, add the following prompt to generate conventional commit messages:
 
-```bash title="Copilot Generate Commit Message Prompt"
+```json title="settings.json"
 // ...existing settings
 
 "github.copilot.chat.commitMessageGeneration.instructions": [  
   {
-    "text": "Generate a commit message that MUST follow the Conventional Commits format (feat, fix, docs, style, refactor, test, perf, build, ci, chore, revert). Include a brief description of the change in the subject line (under 72 characters) and a summarized explanation in the body with around 200 characters, if necessary. Separate the subject and body with a blank line. Example: 'feat(feature): Add new feature description' or 'fix(bug): Fix a bug in the project'."
+    "text": "Generate a commit message that MUST follow the Conventional Commits format (feat, fix, docs, style, refactor, test, perf, build, ci, chore, revert). Include a brief description of the change in the subject line (under 72 characters) and a summarized explanation in the body, if necessary. Separate the subject and body with a blank line. Example: 'feat(auth): Add forgot password functionality to the login screen' or 'fix(products): Fix date format in the product list'."
   }
 ]
 
 // ...existing settings
 ```
-
-Now you can generate it with one click! 🎉
+You can update the above prompt based on your needs. Now you can generate it with one click! 🎉
 
 ![generated commit message](generate-commit.gif)
+
+:::warning[Always Review AI Suggestions]
+AI-generated messages are a helpful starting point, but they aren't always perfect. Always review and refine the message for accuracy and clarity before committing.
+:::
 
 ### Alternative Tools
 
 Besides GitHub Copilot, here are other popular tools for conventional commits:
 
-- **[Commitizen](https://github.com/commitizen/cz-cli)**: Interactive CLI tool that guides you through creating conventional commits.
+- **[Commitizen](https://github.com/commitizen-tools/commitizen)**: Interactive CLI tool that helps you to create conventional commits, auto bump versions and auto changelog generation.
 - **[Conventional Commits VS Code Extension](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)**: GUI helper for VS Code users.
 - **[Cocogitto](https://github.com/cocogitto/cocogitto)**: The Conventional Commits toolbox.
 - **[AI Commits](https://github.com/Nutlope/aicommits)**: A CLI that writes your git commit messages for you with AI.
@@ -226,13 +163,13 @@ git-cliff --init
 git-cliff -o CHANGELOG.md
 ```
 
-That's all you need to generate a changelog! [Here's an example](https://github.com/my-prayers/muslim-data-flutter/blob/main/CHANGELOG.md) that has been generated by Git Cliff. If you need any further customization, you can simply open and edit the `cliff.toml` file.
+That's all you need to generate a changelog! [Here's an example](https://github.com/my-prayers/muslim-data-flutter/blob/main/CHANGELOG.md) that has been generated by **Git Cliff**. If you need any further customization, you can simply open and edit the `cliff.toml` file.
 
 ## Common Customizations
 
 I've picked some useful customizations from the `cliff.toml` to explain here:
 
-### 1. Update the Header Description
+### 1. Update the header & footer description
 
 ```toml title="cliff.toml"
 [changelog]
@@ -241,14 +178,16 @@ header = """
 # Changelog\n
 All notable changes to this project will be documented in this file.\n
 """
-# ...existing config
+
+# template for the changelog footer
+footer = """
+<!-- generated by git-cliff -->
+"""
 ```
 
-### 2. Support Conventional and Non-Conventional Commits
+### 2. Support conventional and non-conventional commits
 
 ```toml title="cliff.toml"
-# ...existing config
-
 [git]
 # parse the commits based on https://www.conventionalcommits.org
 conventional_commits = true
@@ -256,15 +195,11 @@ conventional_commits = true
 filter_unconventional = true
 # process each line of a commit as an individual commit
 split_commits = false
-
-# ...existing config
 ```
 
-### 3. Customize Group Ordering
+### 3. Customize group ordering
 
-```toml title="cliff.toml" {9}
-# ...existing config
-
+```toml title="cliff.toml" {7}
 # regex for parsing and grouping commits
 commit_parsers = [                                            # Group Ordering
   { message = "^feat", group = "<!-- 0 -->🚀 Features" },     # 0 
@@ -276,15 +211,11 @@ commit_parsers = [                                            # Group Ordering
   { message = "^test", group = "<!-- 6 -->🧪 Testing" },
   # ...
 ]
-
-# ...existing config
 ```
 
-### 4. Skip Specific Commit Groups
+### 4. Skip specific commit groups
 
-```toml title="cliff.toml" {10}
-# ...existing config
-
+```toml title="cliff.toml" {8}
 # regex for parsing and grouping commits
 commit_parsers = [
   # ...
@@ -295,15 +226,11 @@ commit_parsers = [
   { message = "^chore\\(release\\)", skip = true }, # <-- skipped group
   # ...
 ]
-
-# ...existing config
 ```
 
-### 5. Sort Commits by Date
+### 5. Sort commits by date
 
 ```toml title="cliff.toml"
-# ...existing config
-
 # Organize commits within sections by oldest or newest order
 sort_commits = "oldest"
 ```
@@ -316,22 +243,22 @@ For more advanced customizations, check out the [Git Cliff documentation](https:
 
 We can take advantage of Git hooks to automate the following tasks:
 
-1.  **`pre-commit`**: Before a commit is created.
+1.  **pre-commit**: Before a commit is created.
     -   Apply `dart fix` to automatically fix issues.
     -   Apply `dart format` to reformat staged files.
     -   Run the Flutter linter to check for analysis issues.
-2.  **`commit-msg`**: After a commit message is written, but before the commit is created.
+2.  **commit-msg**: After a commit message is written, but before the commit is created.
     -   Validate the commit message to ensure it follows the Conventional Commits standard.
-3.  **`pre-push`**: Before pushing code to a remote repository.
+3.  **pre-push**: Before pushing code to a remote repository.
     -   Run all Flutter tests to prevent pushing broken code.
 
 :::tip[Keep Git Hooks Fast and Reliable]
-Regarding the `pre-push` hook, if you have a large test suite that makes your `git push` command too slow, you can skip this hook and set up a PR check in your CI/CD pipeline as an alternative.
+Regarding the **pre-push** hook, if you have a large test suite that makes your `git push` command too slow, you can skip this hook and set up a PR check in your CI/CD pipeline as an alternative.
 :::
 
 ## The Challenge with Manual Git Hooks
 
-While you can set up hooks manually by placing executable scripts (e.g., `pre-commit`) in your project's `.git/hooks/` directory, this approach has significant drawbacks. The `.git` directory is not version-controlled, so hooks are not shared across your team. Each developer must set them up manually, and keeping them updated is a maintenance burden. A Git hook manager solves these problems.
+While you can set up hooks manually by placing executable scripts (e.g., `pre-commit`) in your project's `.git/hooks/` directory, this approach has drawbacks. The `.git` directory is not version-controlled, so hooks are not shared across your team. Each developer must set them up manually, and keeping them updated is a maintenance burden. A Git hook manager solves these problems.
 
 ## Git Hook Management with Lefthook
 
@@ -351,7 +278,7 @@ Let's configure `lefthook.yml` to run the tasks we outlined earlier.
 
 This hook will run three commands in parallel on your staged Dart files before every commit.
 
-```yml title="lefthook.yml" {5,8,10} collapse={13-23}
+```yml title="lefthook.yml" {5,8,10,15,21} collapse={12-23}
 pre-commit:
   parallel: true
   commands:
@@ -379,7 +306,7 @@ pre-push:
 
 Validating a commit message against the Conventional Commits specification is too complex for a single-line command, so we'll use an external script.
 
-First, create the validation script.
+First, create the validation script in this path: `scripts/validate_commit_msg.sh`.
 
 ```bash
 // filepath: scripts/validate_commit_msg.sh
@@ -419,7 +346,7 @@ chmod +x scripts/validate_commit_msg.sh
 
 Finally, add the `commit-msg` hook to your `lefthook.yml`:
 
-```yml title="lefthook.yml" {5,8,10} collapse={1-10, 17-23}
+```yml title="lefthook.yml" {5,8,10,15,21} collapse={1-10, 17-23}
 pre-commit:
   parallel: true
   commands:
@@ -447,7 +374,7 @@ pre-push:
 
 This hook runs all Flutter tests before you push. The push will be blocked if any tests fail.
 
-```yml title="lefthook.yml" {5,8,10} collapse={1-15}
+```yml title="lefthook.yml" {5,8,10,15,21} collapse={1-15}
 pre-commit:
   parallel: true
   commands:
@@ -471,7 +398,133 @@ pre-push:
       run: flutter test
 ```
 
-With this setup, you local development workflow is now automated to enforce code quality and consistency.
+After you completed the configuration, you need to rerun the `lefthook install` to resync the git hooks. With this setup, your local development workflow is now automated to enforce code quality and consistency.
 
-# GitHub CI
+# GitHub PR Checks
+In this section, we won't do a deep dive into CI/CD, as we have already planned a dedicated article for it. Instead, we will set up a basic but essential **GitHub Actions** workflow to automatically analyze and test our code whenever a pull request (**PR**) is opened against the `main` branch.
 
+> **GitHub Actions** is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. You can create workflows that build and test every pull request to your repository, or deploy merged pull requests to production. [read more](https://docs.github.com/en/actions/get-started/understanding-github-actions)
+
+:::tip
+If you are new to CI/CD, I highly recommend reading the [GitHub Actions](https://docs.github.com/en/actions/get-started/understanding-github-actions) documentation to get familiar with the core concepts.
+:::
+
+## Flutter CI
+
+To set up a GitHub Action for running test on PR, create a `.github/workflows` directory in the root of your project. Inside that directory, create a file named `pull_request.yml` with the following content:
+
+```yml
+// filepath: .github/workflows/pull_request.yml
+name: Flutter PR CI
+
+# This workflow runs on pull requests targeting the main branch.
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  analyze_and_test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up the Flutter environment
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # Use the Flutter version from pubspec.yaml
+          flutter-version-file: pubspec.yaml
+          # Enable caching for faster builds
+          cache: true
+
+      # 3. Install project dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. Run static analysis to check for code quality
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      # 5. Run all tests to ensure the PR is stable
+      - name: Run tests
+        run: flutter test
+```
+This workflow ensures that every pull request is automatically checked for code quality and passing tests before it can be merged, preventing broken code from reaching your `main` branch.
+
+## More Advanced Checks
+
+While our current workflow is robust, you can further enhance code quality and security by enabling additional checks on GitHub.
+
+### 1. Enforce Conventional Commits in GitHub
+
+Local Git hooks are great for immediate feedback, but they can be bypassed with a simple `--no-verify` flag. To guarantee that every commit merged into `main` follows the Conventional Commits standard, you can add a check to your CI pipeline. This ensures a clean and consistent commit history, which is significant for generating accurate changelogs and understanding project history.
+
+You can use a GitHub App like [Cocogitto-bot](https://github.com/apps/cocogitto-bot) to validate all commit messages in a pull request.
+
+### 2. Automated Dependency Management with Dependabot
+
+Keeping dependencies up-to-date is crucial for security and accessing new features. GitHub's **Dependabot** automates this process by:
+-   **Security Updates**: Automatically creating pull requests to update vulnerable dependencies as soon as they are discovered.
+-   **Version Updates**: Regularly checking for new versions of your dependencies and creating PRs to keep them current.
+
+You can enable and configure Dependabot by creating a `dependabot.yml` file in your `.github` directory. Here's a basic configuration for a Flutter project:
+
+```yml
+// filepath: .github/dependabot.yml
+version: 2
+updates:
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "00:00"
+      timezone: "Asia/Baghdad"
+    labels:
+      - "dependencies"
+```
+
+This is a basic configuration example. For more advanced setups, you can [optimize](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/optimizing-pr-creation-version-updates) and [customize](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/customizing-dependabot-prs) Dependabot's behavior.
+
+### 3. Implement Branch Protection Rules
+
+Branch protection rules are a powerful GitHub feature that prevents direct pushes to important branches like `main` and enforces quality gates for pull requests. You can configure them in your repository settings under **Settings > Branches > Add branch ruleset**.
+
+**Key rules include**:
+-   **Require status checks to pass**: This is essential. It forces your `Analyze & Test` workflow (and any others) to succeed before a PR can be merged.
+-   **Require a pull request before merging**: Disallows direct pushes to `main` and forces all changes to go through a review process.
+-   **Require signed commits**: Ensures that commits are from a verified source, enhancing security.
+
+By combining your CI workflow with these advanced checks, you create a nearly foolproof system for maintaining a high-quality, secure, and stable codebase.
+
+# Source Code 
+
+To see all the concepts from this article implemented in a real Flutter project, check out the **[Simple Todo App](https://github.com/kosratdev/simple_todo)** repository. Switch to the `01-git-github-workflow` branch to see all in action.
+
+```bash
+# Clone and explore the implementation
+git clone https://github.com/kosratdev/simple_todo.git
+cd simple_todo
+git checkout 01-git-github-workflow
+
+# Install Lefthook and see the hooks in action
+lefthook install
+```
+
+This repository serves as a practical reference for implementing everything we covered in this article. Feel free to fork it and use it as a starting point for your own Flutter projects!
+
+---
+
+We've covered a lot of ground in this article, from establishing a solid branching strategy to automating our entire workflow. By implementing **GitHub Flow**, **Conventional Commits**, automated **changelogs** with **Git Cliff**, local quality checks with **Lefthook**, and a basic CI pipeline with **GitHub Actions**, you've built a robust foundation for any Flutter project.
+
+This setup isn't just about following rules; it's about creating a predictable, high-quality, and efficient development process. It ensures that every piece of code is consistent, tested, and ready for collaboration, freeing you up to focus on what matters most: building great features.
+
+This is just the beginning of our journey. In the next article of the [**Flutter Ship**](../) series, we'll take this foundation and build upon it by setting up different **flavors** for different environments.
+
+I hope this guide has been helpful. If you have any questions, suggestions, or want to share your own workflow tips, please leave a comment below.
+
+`Happy coding!🚀`
