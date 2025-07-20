@@ -5,7 +5,7 @@ description: "Learn to set up a production-ready Git & GitHub workflow for Flutt
 image: "assets/cover.webp"
 tags: [flutter, production-ready, flutter-ship, git, github]
 category: "Flutter"
-draft: true
+draft: false
 ---
 
 # Overview
