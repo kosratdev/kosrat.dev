@@ -2,7 +2,7 @@
 title: "Flutter Ship 01: Git & GitHub Workflow"
 published: 2025-07-20
 description: "Learn to set up a production-ready Git & GitHub workflow for Flutter projects. Covers branching strategy, conventional commits, automated changelogs, git hooks, and CI/CD with GitHub Actions."
-image: "cover.webp"
+image: "assets/cover.webp"
 tags: [flutter, production-ready, flutter-ship, git, github]
 category: "Flutter"
 draft: true
@@ -32,7 +32,7 @@ The solution is to use short-lived branches for every new piece of work, whether
 
 The core idea is illustrated below:
 
-![Github Flow](github-flow.webp)
+![Github Flow](assets/github-flow.webp)
 
 **Branch Types Explained**
 
@@ -106,7 +106,7 @@ There are many tools that can help you write better conventional commits, and th
 If you're using VS Code with workspace-based settings, you can find the settings file at `your-project > .vscode > settings.json`. 
 
 For user-based settings, navigate to: `Settings > Extensions > GitHub Copilot Chat > Commit Message Generation` as attached below:
-![copilot settings](copilot-setting.png)
+![copilot settings](assets/copilot-setting.png)
 
 After you find the settings, add the following prompt to generate conventional commit messages:
 
@@ -123,7 +123,7 @@ After you find the settings, add the following prompt to generate conventional c
 ```
 You can update the above prompt based on your needs. Now you can generate it with one click! 🎉
 
-![generated commit message](generate-commit.gif)
+![generated commit message](assets/generate-commit.gif)
 
 :::warning[Always Review AI Suggestions]
 AI-generated messages are a helpful starting point, but they aren't always perfect. Always review and refine the message for accuracy and clarity before committing.
