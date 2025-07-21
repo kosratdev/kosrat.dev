@@ -21,14 +21,11 @@ But what exactly makes an app "**production-ready**"? Is it just about having a 
 Through this **Flutter Ship** series, we'll explore the essential components that transform a basic app into a production-ready solution:
 
 1. [Flutter Ship 01: Git & GitHub Workflow](git-github/)
-2. Flutter Ship 02: Flavors --> (_Planned_)
-3. Flutter Ship 03: Luncher Icon --> (_Planned_)
-4. Flutter Ship 04: Splash Screen --> (_Planned_)
-5. Flutter Ship 05: Environments --> (_May Be!_)
-6. Flutter Ship 06: Monitoring & Insights --> (_May Be!_)
-7. Flutter Ship 07: Localization --> (_May Be!_)
-8. Flutter Ship 08: App Architecture --> (_May Be!_)
-9. Flutter Ship 09: _More Sections_
+2. Flutter Ship 02: Set Up Environment (Flavors, App Icon, Splash Screen, and .env)  --> (_Planned_)
+6. Flutter Ship 03: Monitoring & Insights --> (_May Be!_)
+7. Flutter Ship 04: Localization --> (_May Be!_)
+8. Flutter Ship 05: App Architecture --> (_May Be!_)
+9. Flutter Ship 06: _More Sections_
 
 Follow along with this series to systematically elevate your Flutter projects from development experiments to polished, production-ready applications ready to delight users around the world.
 
