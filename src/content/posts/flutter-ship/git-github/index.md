@@ -513,22 +513,22 @@ To integrate Codecov with your Flutter project, update the `test` job in your wo
 
 ```yaml
   test:
-  runs-on: ubuntu-latest
-  name: Flutter Tests
-  needs: analyze
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Flutter
-      uses: ./.github/actions/setup-flutter
-    - name: Run tests with coverage
-      run: flutter test --coverage
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage/lcov.info
-        fail_ci_if_error: false
+    runs-on: ubuntu-latest
+    name: Flutter Tests
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+      - name: Run tests with coverage
+        run: flutter test --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          fail_ci_if_error: false
 ```
 After setting this up and connecting your repo to codecov.io, you'll get detailed coverage reports on each pull request, helping maintain or improve test coverage as your codebase evolves.
 
