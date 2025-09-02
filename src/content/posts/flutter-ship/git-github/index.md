@@ -8,9 +8,13 @@ category: "Flutter"
 draft: false
 ---
 
+:::note[Updated]
+This post has been updated at **2 September 2025** with improved Git hook and PR Checks configurations.
+:::
+
 # Overview
 
-Twenty years ago, **Git** emerged as a version control system (**VCS**) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration and sharing.
+More than two decades ago, **Git** emerged as a version control system (**VCS**) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration and sharing.
 
 In this post, I will show you how to setup a **production-ready Git & GitHub workflow** for your project. As you may know, this article is a part of the [**Flutter Ship**](../) series, which guides you in shipping a production-ready Flutter app. However, these principles can be applied to **any language or framework**.
 
@@ -39,7 +43,7 @@ The core idea is illustrated below:
 - **Main Branch (`main`)**: This is the stable branch that always reflects the latest production-ready state of your project. All releases and deployments are made from here.
 - **Feature branches (`feature-*` or `task-id-*`)**: Used for developing new features, enhancements, bug fixings or tasks. If you use a task management tool (like Jira), you can integrate with it and name your branch after the task or ticket ID (e.g., `ab-123-add-login`). Each feature/task branch is short-lived and merged back into `main` via a pull request after review and testing.
 
-This model also supports different development environments with ease. When you complete a feature or task, you open a pull request (PR). You can configure a GitHub Action (or any other CI/CD service) to run tests and automate the generation of **APK**s for Android and **IPA**s for iOS, and distribute them to testers or users via your chosen platforms. I’ll cover Flutter Continuous Delivery (CD) in detail in a future article.
+This model also supports different development environments with ease. When you complete a feature or task, you open a pull request (**PR**). You can configure a GitHub Action (or any other CI/CD service) to run tests and automate the generation of **APK**s for Android and **IPA**s for iOS, and distribute them to testers or users via your chosen platforms. I’ll cover _Flutter Continuous Delivery (CD)_ in detail in a future article.
 
 :::tip[Git & Github Cheat Sheet]
 I assume you already know the basics of Git and GitHub, so I won’t include basic Git commands here. If you need a refresher, check out my [Git & GitHub Cheatsheet](../../git-github-cheat-sheet/) article.
@@ -94,7 +98,7 @@ Check out the following example that uses **conventional commit** messages, whic
 ```
 
 :::tip[Commit Structure]
-I highly recommend you to read the **[Conventional Commits](https://www.conventionalcommits.org)** documentation to get more information about the commit structure like type, scope, description, body, fotter, and breaking changes.
+I highly recommend you to read the **[Conventional Commits](https://www.conventionalcommits.org)** documentation to get more information about the commit structure like type, scope, description, body, footer, and breaking changes.
 :::
 
 ## AI-Generated Commit Messages
@@ -131,7 +135,7 @@ AI-generated messages are a helpful starting point, but they aren't always perfe
 
 ### Alternative Tools
 
-Besides GitHub Copilot, here are other popular tools for conventional commits:
+Besides **GitHub Copilot**, here are other popular tools for conventional commits:
 
 - **[Commitizen](https://github.com/commitizen-tools/commitizen)**: Interactive CLI tool that helps you to create conventional commits, auto bump versions and auto changelog generation.
 - **[Conventional Commits VS Code Extension](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)**: GUI helper for VS Code users.
@@ -253,7 +257,7 @@ We can take advantage of Git hooks to automate the following tasks:
     -   Run all Flutter tests to prevent pushing broken code.
 
 :::tip[Keep Git Hooks Fast and Reliable]
-Regarding the **pre-push** hook, if you have a large test suite that makes your `git push` command too slow, you can skip this hook and set up a PR check in your CI/CD pipeline as an alternative.
+Regarding the **pre-push** hook, if you have a large test suite that makes your `git push` command too slow, you can skip this hook and set up a **PR check** in your CI/CD pipeline as an alternative.
 :::
 
 ## The Challenge with Manual Git Hooks
@@ -264,7 +268,7 @@ While you can set up hooks manually by placing executable scripts (e.g., `pre-co
 
 There are many hook managers available, but since there isn't one made specifically for Dart, we'll use a language-agnostic tool that works with any project: [**Lefthook**](https://lefthook.dev). It's fast, powerful, and what I use in my own Flutter projects.
 
-To get started, install Lefthook using your preferred package manager and run `lefthook install` in your project's root directory. This command creates a `lefthook.yml` configuration file and installs the hooks into your `.git` directory.
+To get started, install Lefthook using your preferred package manager and run `lefthook install` in your project's root directory. This command creates a `lefthook.yaml` configuration file and installs the hooks into your `.git` directory.
 
 :::tip
 I highly recommend reading the [Lefthook documentation](https://lefthook.dev) before proceeding.
@@ -272,13 +276,13 @@ I highly recommend reading the [Lefthook documentation](https://lefthook.dev) be
 
 ## Lefthook Configuration
 
-Let's configure `lefthook.yml` to run the tasks we outlined earlier.
+Let's configure `lefthook.yaml` to run the tasks we outlined earlier.
 
 ### pre-commit: Fix, Format, and Lint
 
 This hook will run three commands in parallel on your staged Dart files before every commit.
 
-```yml title="lefthook.yml" {5,8,10,15,21} collapse={12-23}
+```yaml title="lefthook.yaml" {5,8,10,15,21} collapse={12-23}
 pre-commit:
   parallel: true
   commands:
@@ -288,7 +292,7 @@ pre-commit:
       glob: '*.dart'
       run: dart format {staged_files} && git add {staged_files}
     linter:
-      run: flutter analyze {staged_files} --no-fatal-infos --no-fatal-warnings
+      run: flutter analyze {staged_files}
 
 commit-msg:
   commands:
@@ -304,7 +308,7 @@ pre-push:
 
 ### commit-msg: Validate Commit Message
 
-Validating a commit message against the Conventional Commits specification is too complex for a single-line command, so we'll use an external script.
+Validating a commit message against the **Conventional Commits** specification is too complex for a single-line command, so we'll use an external script.
 
 First, create the validation script in this path: `scripts/validate_commit_msg.sh`.
 
@@ -324,18 +328,38 @@ fi
 # Read the commit message
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
-# Define the Conventional Commits regex pattern
-PATTERN='^(feat|fix|build|chore|ci|docs|style|refactor|perf|test)(\([^)]*\))?(!)?: .+'
+# Get the first line of the commit message
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
 
-# Validate the commit message
-if [[ "$COMMIT_MSG" =~ $PATTERN ]]; then
-  echo "👍 Valid commit message!"
-  exit 0
-else
+# Define the Conventional Commits regex pattern
+# Scope cannot contain spaces - only letters, numbers, hyphens, and underscores
+PATTERN='^(feat|fix|build|chore|ci|docs|style|refactor|perf|test)(\([a-zA-Z0-9_-]+\))?(!)?: .+'
+
+# Validate the commit message format
+if [[ ! "$FIRST_LINE" =~ $PATTERN ]]; then
   echo "👎 Invalid commit message format."
-  echo "Commit message should follow the Conventional Commits format."
+  echo "Commit message should follow the Conventional Commits format:"
+  echo "  <type>(<scope>): <description>"
+  echo "  - type: feat, fix, build, chore, ci, docs, style, refactor, perf, test"
+  echo "  - scope: optional, no spaces allowed (use hyphens or underscores instead)"
+  echo "  - description: brief description"
+  echo ""
+  echo "Examples:"
+  echo "  ✅ feat(user-auth): Add new authentication method"
+  echo "  ✅ fix(api_client): Fix connection timeout issue" 
+  echo "  ❌ fix(my feature): Fix some bug (scope contains spaces)"
   exit 1
 fi
+
+# Check if the first line is no more than 72 characters
+if [ ${#FIRST_LINE} -gt 72 ]; then
+  echo "👎 Commit message first line is too long (${#FIRST_LINE} characters)."
+  echo "Please keep the first line to 72 characters or less."
+  exit 1
+fi
+
+echo "👍 Valid commit message!"
+exit 0
 ```
 
 Next, make the script executable:
@@ -344,9 +368,9 @@ Next, make the script executable:
 chmod +x scripts/validate_commit_msg.sh
 ```
 
-Finally, add the `commit-msg` hook to your `lefthook.yml`:
+Finally, add the `validate-commit-msg` script to your `lefthook.yaml`:
 
-```yml title="lefthook.yml" {5,8,10,15,21} collapse={1-10, 17-23}
+```yaml title="lefthook.yaml" {5,8,10,15,21} collapse={1-10, 17-23}
 pre-commit:
   parallel: true
   commands:
@@ -356,7 +380,7 @@ pre-commit:
       glob: '*.dart'
       run: dart format {staged_files} && git add {staged_files}
     linter:
-      run: flutter analyze {staged_files} --no-fatal-infos --no-fatal-warnings
+      run: flutter analyze {staged_files}
 
 commit-msg:
   commands:
@@ -374,7 +398,7 @@ pre-push:
 
 This hook runs all Flutter tests before you push. The push will be blocked if any tests fail.
 
-```yml title="lefthook.yml" {5,8,10,15,21} collapse={1-15}
+```yaml title="lefthook.yaml" {5,8,10,15,21} collapse={1-15}
 pre-commit:
   parallel: true
   commands:
@@ -384,7 +408,7 @@ pre-commit:
       glob: '*.dart'
       run: dart format {staged_files} && git add {staged_files}
     linter:
-      run: flutter analyze {staged_files} --no-fatal-infos --no-fatal-warnings
+      run: flutter analyze {staged_files}
 
 commit-msg:
   commands:
@@ -401,7 +425,6 @@ pre-push:
 After you completed the configuration, you need to rerun the `lefthook install` to resync the git hooks. With this setup, your local development workflow is now automated to enforce code quality and consistency.
 
 # GitHub PR Checks
-In this section, we won't do a deep dive into CI/CD, as we have already planned a dedicated article for it. Instead, we will set up a basic but essential **GitHub Actions** workflow to automatically analyze and test our code whenever a pull request (**PR**) is opened against the `main` branch.
 
 > **GitHub Actions** is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. You can create workflows that build and test every pull request to your repository, or deploy merged pull requests to production. [read more](https://docs.github.com/en/actions/get-started/understanding-github-actions)
 
@@ -409,47 +432,70 @@ In this section, we won't do a deep dive into CI/CD, as we have already planned 
 If you are new to CI/CD, I highly recommend reading the [GitHub Actions](https://docs.github.com/en/actions/get-started/understanding-github-actions) documentation to get familiar with the core concepts.
 :::
 
-## Flutter CI
+Local Git hooks are great for immediate feedback, but they can be bypassed with a simple `--no-verify` flag. To guarantee that every commit merged into main follows the **Conventional Commits** standard, passes **Flutter analyze** and has no **failing tests**, we can set up a **GitHub Actions** workflow to run these validations automatically whenever a **PR** is opened against the `main` branch.
 
-To set up a GitHub Action for running test on PR, create a `.github/workflows` directory in the root of your project. Inside that directory, create a file named `pull_request.yml` with the following content:
 
-```yml
-// filepath: .github/workflows/pull_request.yml
-name: Flutter PR CI
+For the **Flutter analyze** and **Flutter test** steps, we need a common Flutter setup. To avoid duplicating this setup code, we can use [GitHub Composite actions](https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action). Let's create a composite action to set up the Flutter environment. First, create a `.github/actions/setup-flutter` directory in the root of your project. Inside that directory, create a file named `action.yaml` with the following content:
 
-# This workflow runs on pull requests targeting the main branch.
+```yaml
+// filepath: .github/actions/setup-flutter/action.yaml
+name: "Setup Flutter"
+description: "Setup Flutter with dependencies"
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version-file: pubspec.yaml
+    - name: Install dependencies
+      run: flutter pub get
+      shell: bash
+```
+
+Then let's create the **PR checks workflow**. First, create a `.github/workflows` directory in the root of your project. Inside that directory, create a file named `pull_request.yaml` with the following content:
+
+```yaml
+// filepath: .github/workflows/pull_request.yaml
+name: Flutter PR Checks
+
 on:
   pull_request:
     branches:
       - main
 
 jobs:
-  analyze_and_test:
-    name: Analyze & Test
+  commitlint:
     runs-on: ubuntu-latest
+    name: Conventional Commitlint
+    permissions:
+      pull-requests: read
     steps:
-      # 1. Check out the repository code
+      - name: Conventional Commitlint
+        uses: opensource-nepal/commitlint@v1
+
+  analyze:
+    runs-on: ubuntu-latest
+    name: Flutter Analyze
+    needs: commitlint
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # 2. Set up the Flutter environment
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          # Use the Flutter version from pubspec.yaml
-          flutter-version-file: pubspec.yaml
-          # Enable caching for faster builds
-          cache: true
-
-      # 3. Install project dependencies
-      - name: Install dependencies
-        run: flutter pub get
-
-      # 4. Run static analysis to check for code quality
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
       - name: Analyze code
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: flutter analyze
 
-      # 5. Run all tests to ensure the PR is stable
+  test:
+    runs-on: ubuntu-latest
+    name: Flutter Tests
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
       - name: Run tests
         run: flutter test
 ```
@@ -459,11 +505,32 @@ This workflow ensures that every pull request is automatically checked for code 
 
 While our current workflow is robust, you can further enhance code quality and security by enabling additional checks on GitHub.
 
-### 1. Enforce Conventional Commits in GitHub
+### 1. Codecov Integration
 
-Local Git hooks are great for immediate feedback, but they can be bypassed with a simple `--no-verify` flag. To guarantee that every commit merged into `main` follows the Conventional Commits standard, you can add a check to your CI pipeline. This ensures a clean and consistent commit history, which is significant for generating accurate changelogs and understanding project history.
+Code coverage metrics help you understand how much of your codebase is tested. **Codecov** is a popular service that visualizes coverage reports, tracks changes over time, and provides PR feedback about coverage changes.
 
-You can use a GitHub App like [Cocogitto-bot](https://github.com/apps/cocogitto-bot) to validate all commit messages in a pull request.
+To integrate Codecov with your Flutter project, update the `test` job in your workflow:
+
+```yaml
+  test:
+  runs-on: ubuntu-latest
+  name: Flutter Tests
+  needs: analyze
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Flutter
+      uses: ./.github/actions/setup-flutter
+    - name: Run tests with coverage
+      run: flutter test --coverage
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage/lcov.info
+        fail_ci_if_error: false
+```
+After setting this up and connecting your repo to codecov.io, you'll get detailed coverage reports on each pull request, helping maintain or improve test coverage as your codebase evolves.
 
 ### 2. Automated Dependency Management with Dependabot
 
@@ -471,10 +538,10 @@ Keeping dependencies up-to-date is crucial for security and accessing new featur
 -   **Security Updates**: Automatically creating pull requests to update vulnerable dependencies as soon as they are discovered.
 -   **Version Updates**: Regularly checking for new versions of your dependencies and creating PRs to keep them current.
 
-You can enable and configure Dependabot by creating a `dependabot.yml` file in your `.github` directory. Here's a basic configuration for a Flutter project:
+You can enable and configure Dependabot by creating a `dependabot.yaml` file in your `.github` directory. Here's a basic configuration for a Flutter project:
 
-```yml
-// filepath: .github/dependabot.yml
+```yaml
+// filepath: .github/dependabot.yaml
 version: 2
 updates:
   - package-ecosystem: "pub"
@@ -484,6 +551,7 @@ updates:
       day: "sunday"
       time: "00:00"
       timezone: "Asia/Baghdad"
+    target-branch: "main"
     labels:
       - "dependencies"
 ```
