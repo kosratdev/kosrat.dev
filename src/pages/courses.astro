@@ -1,8 +1,20 @@
 ---
+import { getCollection } from "astro:content";
+import CourseCard from "@components/CourseCard.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+const courses = await getCollection(
+	"courses",
+	({ data }) => data.type === "course" && !data.draft,
+);
 ---
 
 <MainGridLayout title="Courses">
-    <h1 class="text-2xl font-bold">Courses</h1>
-    <p>This is the courses page. It will list all available courses.</p>
+	<div class="flex flex-col gap-8">
+		{
+			courses.map((course) => (
+				<CourseCard course={course} />
+			))
+		}
+	</div>
 </MainGridLayout>

@@ -1,8 +1,8 @@
 ---
 type: "course"
 title: "Flutter-Ship"
-description: "A comprehensive guide to building and shipping production-ready Flutter apps."
-image: "/images/my-prayers.png"
+description: "Flutter Ship is a comprehensive series dedicated to guiding Flutter developers through the journey of building production-ready applications."
+image: "assets/cover.webp"
 level: "Intermediate"
 category: "Flutter"
 published: 2025-09-03
