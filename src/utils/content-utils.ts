@@ -112,3 +112,108 @@ export async function getCategoryList(): Promise<Category[]> {
 	}
 	return ret;
 }
+
+// Course-specific utility functions
+export type CourseCategory = {
+	name: string;
+	count: number;
+	url: string;
+};
+
+export async function getCourseCategoryList(): Promise<CourseCategory[]> {
+	const allCourses = await getCollection("courses", ({ data }) => {
+		return (
+			data.type === "course" &&
+			(import.meta.env.PROD ? data.draft !== true : true)
+		);
+	});
+
+	const count: { [key: string]: number } = {};
+	allCourses.forEach((course) => {
+		// Type guard to ensure we're working with course type
+		if (course.data.type !== "course") return;
+
+		if (!course.data.category) {
+			const ucKey = i18n(I18nKey.uncategorized);
+			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
+			return;
+		}
+
+		const categoryName =
+			typeof course.data.category === "string"
+				? course.data.category.trim()
+				: String(course.data.category).trim();
+
+		count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
+	});
+
+	const lst = Object.keys(count).sort((a, b) => {
+		return a.toLowerCase().localeCompare(b.toLowerCase());
+	});
+
+	const ret: CourseCategory[] = [];
+	for (const c of lst) {
+		ret.push({
+			name: c,
+			count: count[c],
+			url: `/courses/?category=${encodeURIComponent(c)}`,
+		});
+	}
+	return ret;
+}
+
+export type CourseLevel = {
+	name: string;
+	count: number;
+	url: string;
+};
+
+export async function getCourseLevelList(): Promise<CourseLevel[]> {
+	const allCourses = await getCollection("courses", ({ data }) => {
+		return (
+			data.type === "course" &&
+			(import.meta.env.PROD ? data.draft !== true : true)
+		);
+	});
+
+	const count: { [key: string]: number } = {};
+	allCourses.forEach((course) => {
+		// Type guard to ensure we're working with course type
+		if (course.data.type !== "course") return;
+
+		if (!course.data.level) {
+			return;
+		}
+
+		const levelName =
+			typeof course.data.level === "string"
+				? course.data.level.trim()
+				: String(course.data.level).trim();
+
+		count[levelName] = count[levelName] ? count[levelName] + 1 : 1;
+	});
+
+	// Sort levels in a meaningful order: Beginner, Intermediate, Advanced
+	const levelOrder = ["Beginner", "Intermediate", "Advanced"];
+	const lst = Object.keys(count).sort((a, b) => {
+		const indexA = levelOrder.indexOf(a);
+		const indexB = levelOrder.indexOf(b);
+
+		if (indexA !== -1 && indexB !== -1) {
+			return indexA - indexB;
+		}
+		if (indexA !== -1) return -1;
+		if (indexB !== -1) return 1;
+		return a.toLowerCase().localeCompare(b.toLowerCase());
+	});
+
+	const ret: CourseLevel[] = [];
+	for (const l of lst) {
+		ret.push({
+			name: l,
+			count: count[l],
+			url: `/courses/?level=${encodeURIComponent(l)}`,
+		});
+	}
+	return ret;
+}
