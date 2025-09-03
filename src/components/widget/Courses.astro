@@ -1,0 +1,52 @@
+---
+import { getCollection } from "astro:content";
+import ButtonLink from "@components/control/ButtonLink.astro";
+import WidgetLayout from "@components/widget/WidgetLayout.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { url } from "@utils/url-utils";
+
+const coursesCollection = await getCollection("courses");
+const courses = coursesCollection
+	.filter((entry) => entry.data.type === "course" && !entry.data.draft)
+	.sort((a, b) => {
+		if (a.data.type === "course" && b.data.type === "course") {
+			return b.data.published.valueOf() - a.data.published.valueOf();
+		}
+		return 0;
+	});
+
+const COLLAPSED_HEIGHT = "7.5rem";
+const COLLAPSE_THRESHOLD = 5;
+
+const isCollapsed = courses.length >= COLLAPSE_THRESHOLD;
+
+interface Props {
+	class?: string;
+	style?: string;
+}
+const className = Astro.props.class;
+const style = Astro.props.style;
+---
+
+{
+	courses.length > 0 && (
+		<WidgetLayout
+			name={i18n(I18nKey.courses)}
+			id="courses"
+			isCollapsed={isCollapsed}
+			collapsedHeight={COLLAPSED_HEIGHT}
+			class={className}
+			style={style}
+		>
+			{courses.map((course) => (
+				<ButtonLink
+					url={url(`/courses/${course.slug}`)}
+					label={`View the ${course.data.title} course`}
+				>
+					{course.data.title}
+				</ButtonLink>
+			))}
+		</WidgetLayout>
+	)
+}
