@@ -1,0 +1,278 @@
+---
+import type { CollectionEntry } from "astro:content";
+import path from "node:path";
+import { Icon } from "astro-icon/components";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import { getDir } from "../utils/url-utils";
+import ImageWrapper from "./misc/ImageWrapper.astro";
+import Markdown from "./misc/Markdown.astro";
+
+interface Props {
+	lesson: CollectionEntry<"courses">;
+	course: CollectionEntry<"courses">;
+	isFirstLesson: boolean;
+	isLastLesson: boolean;
+	previousLesson: CollectionEntry<"courses"> | null;
+	nextLesson: CollectionEntry<"courses"> | null;
+}
+
+const {
+	lesson,
+	course,
+	isFirstLesson,
+	isLastLesson,
+	previousLesson,
+	nextLesson,
+} = Astro.props;
+
+// Render the lesson content
+const { Content } = await lesson.render();
+const { remarkPluginFrontmatter } = await lesson.render();
+---
+
+<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
+    <div id="lesson-container" class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">
+        
+        <!-- Breadcrumb Navigation -->
+        <div class="flex items-center gap-2 text-sm text-black/50 dark:text-white/50 mb-4 transition onload-animation">
+            <a href="/courses/" class="hover:text-[var(--primary)] transition-colors">
+                Courses
+            </a>
+            <Icon name="material-symbols:chevron-right" class="text-xs" />
+            <a href={`/courses/${course.slug}/`} class="hover:text-[var(--primary)] transition-colors">
+                {course.data.title}
+            </a>
+            <Icon name="material-symbols:chevron-right" class="text-xs" />
+            <span>{lesson.data.title}</span>
+        </div>
+
+        <!-- Word count and reading time -->
+        <div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
+            <div class="flex flex-row items-center">
+                <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                    <Icon name="material-symbols:menu-book-rounded"></Icon>
+                </div>
+                <div class="text-sm">Lesson</div>
+            </div>
+            {remarkPluginFrontmatter.words && (
+                <div class="flex flex-row items-center">
+                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                        <Icon name="material-symbols:notes-rounded"></Icon>
+                    </div>
+                    <div class="text-sm">{remarkPluginFrontmatter.words} {" " + i18n(I18nKey.wordsCount)}</div>
+                </div>
+            )}
+            {remarkPluginFrontmatter.minutes && (
+                <div class="flex flex-row items-center">
+                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
+                        <Icon name="material-symbols:schedule-outline-rounded"></Icon>
+                    </div>
+                    <div class="text-sm">
+                        {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+                    </div>
+                </div>
+            )}
+        </div>
+
+        <!-- Title -->
+        <div class="relative onload-animation">
+            <div
+                data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
+                class="transition w-full block font-bold mb-3
+                text-3xl md:text-[2.25rem]/[2.75rem]
+                text-black/90 dark:text-white/90
+                md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
+                before:absolute before:top-[0.75rem] before:left-[-1.125rem]
+            ">
+                {lesson.data.title}
+            </div>
+        </div>
+
+        <!-- Lesson metadata -->
+        <div class="onload-animation mb-5">
+            <div class="flex items-center gap-4 text-sm text-black/60 dark:text-white/60">
+                {lesson.data.type === "lesson" && lesson.data.published && (
+                    <div class="flex items-center gap-1">
+                        <Icon name="material-symbols:calendar-today" class="text-sm" />
+                        <time datetime={lesson.data.published.toISOString()}>
+                            {lesson.data.published.toLocaleDateString()}
+                        </time>
+                    </div>
+                )}
+                
+                {lesson.data.type === "lesson" && lesson.data.updated && (
+                    <div class="flex items-center gap-1">
+                        <Icon name="material-symbols:update" class="text-sm" />
+                        <time datetime={lesson.data.updated.toISOString()}>
+                            Updated {lesson.data.updated.toLocaleDateString()}
+                        </time>
+                    </div>
+                )}
+
+                <div class="flex items-center gap-1">
+                    <Icon name="material-symbols:auto-stories" class="text-sm" />
+                    <span>Order {lesson.data.type === "lesson" ? lesson.data.order : "N/A"}</span>
+                </div>
+            </div>
+            <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mt-5"></div>
+        </div>
+
+        <!-- Lesson Content -->
+        <Markdown class="mb-6 markdown-content onload-animation">
+            <Content />
+        </Markdown>
+
+    </div>
+</div>
+
+<!-- Navigation Buttons -->
+<div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
+    <!-- Previous Button -->
+    <div class="w-full">
+        {!isFirstLesson && previousLesson ? (
+            <a 
+                href={`/courses/${course.slug}/?lesson=${previousLesson.slug.split('/').pop()}`}
+                class="w-full font-bold overflow-hidden active:scale-95 block"
+            >
+                <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-start gap-4">
+                    <Icon name="material-symbols:chevron-left-rounded" class="text-[2rem] text-[var(--primary)]" />
+                    <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">
+                        {previousLesson.data.title}
+                    </div>
+                </div>
+            </a>
+        ) : (
+            <div class="w-full h-[3.75rem]"></div>
+        )}
+    </div>
+
+    <!-- Complete/Next Button -->
+    <div class="w-full">
+        {isLastLesson ? (
+            <button 
+                id="finish-course-btn"
+                class="w-full font-bold overflow-hidden active:scale-95"
+                data-lesson={lesson.slug}
+                data-course={course.slug}
+            >
+                <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4 bg-green-600 hover:bg-green-700 text-white">
+                    <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)]">
+                        Finish Course
+                    </div>
+                    <Icon name="material-symbols:check-circle" class="text-[2rem]" />
+                </div>
+            </button>
+        ) : nextLesson ? (
+            <button 
+                id="next-lesson-btn"
+                class="w-full font-bold overflow-hidden active:scale-95"
+                data-lesson={lesson.slug}
+                data-next-lesson={nextLesson.slug}
+                data-course={course.slug}
+            >
+                <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4 bg-blue-600 hover:bg-blue-700 text-white">
+                    <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)]">
+                        {nextLesson.data.title}
+                    </div>
+                    <Icon name="material-symbols:chevron-right-rounded" class="text-[2rem]" />
+                </div>
+            </button>
+        ) : (
+            <div class="w-full h-[3.75rem]"></div>
+        )}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to mark lesson as completed
+    function markLessonCompleted(lessonSlug: string, courseSlug: string) {
+        const progress = JSON.parse(localStorage.getItem(`course-progress-${courseSlug}`) || '[]');
+        
+        if (!progress.includes(lessonSlug)) {
+            progress.push(lessonSlug);
+            localStorage.setItem(`course-progress-${courseSlug}`, JSON.stringify(progress));
+            
+            // Update the UI to show completion
+            const icon = document.querySelector(`[data-lesson-completed="${lessonSlug}"]`) as HTMLElement;
+            if (icon) {
+                icon.style.display = 'block';
+            }
+        }
+    }
+    
+    // Next lesson button
+    const nextBtn = document.getElementById('next-lesson-btn');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            const currentLessonSlug = this.getAttribute('data-lesson');
+            const nextLessonSlug = this.getAttribute('data-next-lesson');
+            const courseSlug = this.getAttribute('data-course');
+            
+            if (currentLessonSlug && courseSlug) {
+                // Mark current lesson as completed
+                markLessonCompleted(currentLessonSlug, courseSlug);
+                
+                // Navigate to next lesson
+                if (nextLessonSlug) {
+                    const nextLessonId = nextLessonSlug.split('/').pop();
+                    window.location.href = `/courses/${courseSlug}/?lesson=${nextLessonId}`;
+                }
+            }
+        });
+    }
+    
+    // Finish course button
+    const finishBtn = document.getElementById('finish-course-btn');
+    if (finishBtn) {
+        finishBtn.addEventListener('click', function() {
+            const currentLessonSlug = this.getAttribute('data-lesson');
+            const courseSlug = this.getAttribute('data-course');
+            
+            if (currentLessonSlug && courseSlug) {
+                // Mark current lesson as completed
+                markLessonCompleted(currentLessonSlug, courseSlug);
+                
+                // Show completion message
+                alert('Congratulations! You have completed the course!');
+                
+                // Optionally redirect back to courses page
+                window.location.href = '/courses/';
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.lesson-content {
+    /* Ensure proper spacing for lesson content */
+}
+
+.lesson-content h1,
+.lesson-content h2,
+.lesson-content h3,
+.lesson-content h4,
+.lesson-content h5,
+.lesson-content h6 {
+    @apply mt-8 mb-4 first:mt-0;
+}
+
+.lesson-content p {
+    @apply mb-4;
+}
+
+.lesson-content ul,
+.lesson-content ol {
+    @apply mb-4;
+}
+
+.lesson-content pre {
+    @apply mb-6;
+}
+
+.lesson-content blockquote {
+    @apply mb-6;
+}
+</style>

@@ -1,0 +1,182 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import BackToTop from "@components/control/BackToTop.astro";
+import Footer from "@components/Footer.astro";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
+import Navbar from "@components/Navbar.astro";
+import CourseDetailSideBar from "@components/widget/CourseDetailSideBar.astro";
+import Layout from "@layouts/Layout.astro";
+import { Icon } from "astro-icon/components";
+import LessonContent from "../../components/LessonContent.astro";
+import { siteConfig } from "../../config";
+import {
+	BANNER_HEIGHT,
+	BANNER_HEIGHT_EXTEND,
+	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
+} from "../../constants/constants";
+
+export async function getStaticPaths() {
+	const courses = await getCollection("courses", ({ data }) => {
+		return data.type === "course" && !data.draft;
+	});
+
+	return courses.map((course) => ({
+		params: { slug: course.slug },
+		props: { course },
+	}));
+}
+
+type Props = {
+	course: CollectionEntry<"courses">;
+};
+
+const { course } = Astro.props;
+const { slug } = Astro.params;
+
+// Get current lesson from URL search params or default to first lesson
+const url = Astro.url;
+const lessonParam = url.searchParams.get("lesson");
+
+// Get all sections and lessons for this course
+const allCourseContent = await getCollection(
+	"courses",
+	({ slug: contentSlug }) => {
+		return contentSlug.startsWith(`${course.slug}/`);
+	},
+);
+
+// Separate sections and lessons
+const sections = allCourseContent
+	.filter((item) => item.data.type === "section")
+	.sort((a, b) => {
+		if (a.data.type === "section" && b.data.type === "section") {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	});
+
+const lessons = allCourseContent
+	.filter((item) => item.data.type === "lesson")
+	.sort((a, b) => {
+		// First sort by section (based on folder structure)
+		const aSection = a.slug.split("/")[1]; // e.g., "01-git-workflow"
+		const bSection = b.slug.split("/")[1];
+
+		if (aSection !== bSection) {
+			const aSectionData = sections.find((s) => s.slug.endsWith(aSection));
+			const bSectionData = sections.find((s) => s.slug.endsWith(bSection));
+			const aSectionOrder =
+				aSectionData && aSectionData.data.type === "section"
+					? aSectionData.data.order
+					: 0;
+			const bSectionOrder =
+				bSectionData && bSectionData.data.type === "section"
+					? bSectionData.data.order
+					: 0;
+			return aSectionOrder - bSectionOrder;
+		}
+
+		// Then sort by lesson order within section
+		if (a.data.type === "lesson" && b.data.type === "lesson") {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	});
+
+// Determine current lesson
+let currentLesson = lessons[0]; // Default to first lesson
+if (lessonParam) {
+	const foundLesson = lessons.find(
+		(lesson) =>
+			lesson.slug.endsWith(lessonParam) || lesson.slug === lessonParam,
+	);
+	if (foundLesson) {
+		currentLesson = foundLesson;
+	}
+}
+
+// Get current lesson index for navigation
+const currentLessonIndex = lessons.findIndex(
+	(lesson) => lesson.slug === currentLesson.slug,
+);
+const isFirstLesson = currentLessonIndex === 0;
+const isLastLesson = currentLessonIndex === lessons.length - 1;
+
+const hasBannerCredit =
+	siteConfig.banner.enable && siteConfig.banner.credit.enable;
+const hasBannerLink = !!siteConfig.banner.credit.url;
+
+const mainPanelTop = siteConfig.banner.enable
+	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
+	: "5.5rem";
+---
+
+<Layout title={`${course.data.title} - ${currentLesson.data.title}`}>
+
+<!-- Navbar -->
+<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto">
+    <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
+        <Navbar></Navbar>
+    </div>
+</div>
+
+<!-- Banner -->
+{siteConfig.banner.enable && <div id="banner-wrapper" class={`absolute z-10 w-full transition duration-700 overflow-hidden`} style={`top: -${BANNER_HEIGHT_EXTEND}vh`}>
+    <ImageWrapper id="banner" alt="Banner image of the blog" class:list={["object-cover h-full transition duration-700 opacity-0 scale-105"]}
+                  src={siteConfig.banner.src} position={siteConfig.banner.position}>
+    </ImageWrapper>
+</div>}
+
+<!-- Main content -->
+<div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
+    <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto">
+        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-[17.5rem_auto] grid-rows-[auto_1fr_auto] lg:grid-rows-[auto]
+    mx-auto gap-4 px-0 md:px-4">
+            
+            <!-- Banner image credit -->
+            {hasBannerCredit && <a href={siteConfig.banner.credit.url} id="banner-credit" target="_blank" rel="noopener" aria-label="Visit image source"
+                                   class:list={["group onload-animation transition-all absolute flex justify-center items-center rounded-full " +
+                                   "px-3 right-4 -top-[3.25rem] bg-black/60 hover:bg-black/70 h-9", {"hover:pr-9 active:bg-black/80": hasBannerLink}]}>
+                <Icon class="text-white/75 text-[1.25rem] mr-1" name="material-symbols:copyright-outline-rounded"></Icon>
+                <div class="text-white/75 text-xs">{siteConfig.banner.credit.text}</div>
+                <Icon class:list={["transition absolute text-[oklch(0.75_0.14_var(--hue))] right-4 text-[0.75rem] opacity-0",
+                    {"group-hover:opacity-100": hasBannerLink}]}
+                      name="fa6-solid:arrow-up-right-from-square">
+                </Icon>
+            </a>}
+
+            <CourseDetailSideBar 
+                course={course}
+                sections={sections}
+                lessons={lessons}
+                currentLesson={currentLesson}
+                class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation">
+            </CourseDetailSideBar>
+
+            <main id="swup-container" class="transition-swup-fade col-span-2 lg:col-span-1 overflow-hidden">
+                <div id="content-wrapper" class="onload-animation">
+                    <LessonContent 
+                        lesson={currentLesson}
+                        course={course}
+                        isFirstLesson={isFirstLesson}
+                        isLastLesson={isLastLesson}
+                        previousLesson={!isFirstLesson ? lessons[currentLessonIndex - 1] : null}
+                        nextLesson={!isLastLesson ? lessons[currentLessonIndex + 1] : null}>
+                    </LessonContent>
+                    
+                    <div class="footer col-span-2 onload-animation hidden lg:block">
+                        <Footer></Footer>
+                    </div>
+                </div>
+            </main>
+
+            <div class="footer col-span-2 onload-animation block lg:hidden">
+                <Footer></Footer>
+            </div>
+        </div>
+
+        <BackToTop></BackToTop>
+    </div>
+</div>
+
+</Layout>

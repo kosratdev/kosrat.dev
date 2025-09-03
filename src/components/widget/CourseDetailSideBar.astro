@@ -1,0 +1,245 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+	course: CollectionEntry<"courses">;
+	sections: CollectionEntry<"courses">[];
+	lessons: CollectionEntry<"courses">[];
+	currentLesson: CollectionEntry<"courses">;
+	class?: string;
+}
+
+const {
+	course,
+	sections,
+	lessons,
+	currentLesson,
+	class: className,
+} = Astro.props;
+
+// Group lessons by section
+const lessonsBySection = new Map<string, CollectionEntry<"courses">[]>();
+
+lessons.forEach((lesson) => {
+	const sectionSlug = lesson.slug.split("/")[1]; // e.g., "01-git-workflow"
+	if (!lessonsBySection.has(sectionSlug)) {
+		lessonsBySection.set(sectionSlug, []);
+	}
+	const sectionLessons = lessonsBySection.get(sectionSlug);
+	if (sectionLessons) {
+		sectionLessons.push(lesson);
+	}
+});
+
+// Determine which section contains the current lesson
+const currentSectionSlug = currentLesson.slug.split("/")[1];
+---
+
+<div id="sidebar" class:list={[className, "w-full"]}>
+    <!-- Course Header -->
+    <div class="flex flex-col w-full gap-4 mb-4">
+        <div class="card-wrapper">
+            <div class="card-base">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                            {course.data.title}
+                        </h2>
+                        <button 
+                            id="reset-progress-btn"
+                            class="text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                            title="Reset Progress"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                        {course.data.type === "course" ? course.data.description : ""}
+                    </p>
+                    <div class="flex items-center gap-2 text-xs">
+                        {course.data.type === "course" && (
+                            <>
+                                <span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                                    {course.data.level}
+                                </span>
+                                <span class="px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                                    {course.data.category}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lessons Navigation -->
+    <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-2 top-4 sticky top-4">
+        <div class="card-wrapper">
+            <div class="card-base">
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2 flex items-center gap-2">
+                        <Icon name="material-symbols:list-alt" class="text-base" />
+                        Course Content
+                    </h3>
+                    
+                    {sections.map((section) => {
+                        const sectionSlug = section.slug.split('/').pop()!;
+                        const sectionLessons = lessonsBySection.get(sectionSlug) || [];
+                        const isCurrentSection = sectionSlug === currentSectionSlug;
+                        
+                        return (
+                            <div class="section-group">
+                                <button 
+                                    class="section-toggle w-full flex items-center justify-between py-2 px-3 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                    data-section={sectionSlug}
+                                    data-expanded={isCurrentSection ? "true" : "false"}
+                                >
+                                    <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                                        {section.data.title}
+                                    </span>
+                                    <Icon 
+                                        name="material-symbols:expand-more" 
+                                        class={`text-sm transition-transform ${isCurrentSection ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+                                
+                                <div 
+                                    class={`section-content overflow-hidden transition-all duration-300 ${isCurrentSection ? 'max-h-96' : 'max-h-0'}`}
+                                    data-section-content={sectionSlug}
+                                >
+                                    <div class="pl-4 py-1">
+                                        {sectionLessons.map((lesson, index) => {
+                                            const isCurrentLesson = lesson.slug === currentLesson.slug;
+                                            const lessonId = lesson.slug.split('/').pop()!;
+                                            
+                                            return (
+                                                <a 
+                                                    href={`/courses/${course.slug}/?lesson=${lessonId}`}
+                                                    class={`lesson-link block py-2 px-3 rounded text-sm transition-colors ${
+                                                        isCurrentLesson 
+                                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' 
+                                                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                    }`}
+                                                    data-lesson={lesson.slug}
+                                                >
+                                                    <div class="flex items-center justify-between">
+                                                        <span>{lesson.data.title}</span>
+                                                        <div class="flex items-center gap-1">
+                                                            <Icon 
+                                                                name="material-symbols:check-circle" 
+                                                                class={`text-sm lesson-completed-icon ${isCurrentLesson ? 'text-green-600 dark:text-green-400' : 'text-neutral-300 dark:text-neutral-600'}`}
+                                                                data-lesson-completed={lesson.slug}
+                                                                style="display: none;"
+                                                            />
+                                                            {isCurrentLesson && (
+                                                                <Icon 
+                                                                    name="material-symbols:play-arrow" 
+                                                                    class="text-sm text-blue-600 dark:text-blue-400"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load progress from localStorage
+    function loadProgress() {
+        const firstLessonElement = document.querySelector('[data-lesson]');
+        if (!firstLessonElement) return;
+        
+        const firstLessonSlug = firstLessonElement.getAttribute('data-lesson');
+        if (!firstLessonSlug) return;
+        
+        const courseSlug = firstLessonSlug.split('/')[0];
+        const progress = JSON.parse(localStorage.getItem(`course-progress-${courseSlug}`) || '[]');
+        
+        progress.forEach((lessonSlug: string) => {
+            const icon = document.querySelector(`[data-lesson-completed="${lessonSlug}"]`) as HTMLElement;
+            if (icon) {
+                icon.style.display = 'block';
+            }
+        });
+    }
+    
+    // Reset progress
+    function resetProgress() {
+        const firstLessonElement = document.querySelector('[data-lesson]');
+        if (!firstLessonElement) return;
+        
+        const firstLessonSlug = firstLessonElement.getAttribute('data-lesson');
+        if (!firstLessonSlug) return;
+        
+        const courseSlug = firstLessonSlug.split('/')[0];
+        localStorage.removeItem(`course-progress-${courseSlug}`);
+        
+        // Hide all completed icons
+        document.querySelectorAll('[data-lesson-completed]').forEach((icon) => {
+            const iconElement = icon as HTMLElement;
+            iconElement.style.display = 'none';
+        });
+    }
+    
+    // Section toggle functionality
+    document.querySelectorAll('.section-toggle').forEach((toggle) => {
+        toggle.addEventListener('click', function(this: HTMLElement) {
+            const sectionSlug = this.getAttribute('data-section');
+            const content = document.querySelector(`[data-section-content="${sectionSlug}"]`) as HTMLElement;
+            const icon = this.querySelector('[name="material-symbols:expand-more"]') as HTMLElement;
+            const isExpanded = this.getAttribute('data-expanded') === 'true';
+            
+            if (content && icon) {
+                if (isExpanded) {
+                    // Collapse
+                    content.style.maxHeight = '0';
+                    icon.classList.remove('rotate-180');
+                    this.setAttribute('data-expanded', 'false');
+                } else {
+                    // Expand
+                    content.style.maxHeight = '24rem'; // max-h-96
+                    icon.classList.add('rotate-180');
+                    this.setAttribute('data-expanded', 'true');
+                }
+            }
+        });
+    });
+    
+    // Reset button functionality
+    const resetBtn = document.getElementById('reset-progress-btn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetProgress);
+    }
+    
+    // Load progress on page load
+    loadProgress();
+});
+</script>
+
+<style>
+.card-wrapper {
+    @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] transition-all;
+    box-shadow: var(--shadow-box);
+}
+
+.card-base {
+    @apply p-5;
+}
+
+.section-content {
+    transition: max-height 0.3s ease-in-out;
+}
+</style>

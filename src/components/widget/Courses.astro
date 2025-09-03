@@ -41,7 +41,7 @@ const style = Astro.props.style;
 		>
 			{courses.map((course) => (
 				<ButtonLink
-					url={url(`/courses/${course.slug}`)}
+					url={url(`/courses/${course.slug}/`)}
 					label={`View the ${course.data.title} course`}
 				>
 					{course.data.title}
