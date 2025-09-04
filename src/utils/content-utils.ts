@@ -112,3 +112,84 @@ export async function getCategoryList(): Promise<Category[]> {
 	}
 	return ret;
 }
+
+// Course-related utilities
+export async function getSortedCourses() {
+	const allCourses = await getCollection("courses", ({ data }) => {
+		return (
+			data.type === "course" &&
+			(import.meta.env.PROD ? data.draft !== true : true)
+		);
+	});
+
+	return allCourses.sort((a, b) => {
+		if (a.data.type === "course" && b.data.type === "course") {
+			return (
+				new Date(b.data.published).getTime() -
+				new Date(a.data.published).getTime()
+			);
+		}
+		return 0;
+	});
+}
+
+export async function getSortedSections(courseSlug: string) {
+	const allSections = await getCollection("courses", ({ id, data }) => {
+		return data.type === "section" && id.startsWith(courseSlug);
+	});
+
+	return allSections.sort((a, b) => {
+		if (a.data.type === "section" && b.data.type === "section") {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	});
+}
+
+export async function getSortedLessons(sectionSlug: string) {
+	const allLessons = await getCollection("courses", ({ id, data }) => {
+		return (
+			data.type === "lesson" &&
+			id.startsWith(sectionSlug) &&
+			("draft" in data
+				? import.meta.env.PROD
+					? data.draft !== true
+					: true
+				: true)
+		);
+	});
+
+	return allLessons.sort((a, b) => {
+		if (a.data.type === "lesson" && b.data.type === "lesson") {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	});
+}
+
+export async function getAllCourseLessons(courseSlug: string) {
+	const allLessons = await getCollection("courses", ({ id, data }) => {
+		return (
+			data.type === "lesson" &&
+			id.startsWith(courseSlug) &&
+			("draft" in data
+				? import.meta.env.PROD
+					? data.draft !== true
+					: true
+				: true)
+		);
+	});
+
+	return allLessons.sort((a, b) => {
+		if (a.data.type === "lesson" && b.data.type === "lesson") {
+			// First sort by section order, then by lesson order
+			const sectionA = a.id.split("/")[1];
+			const sectionB = b.id.split("/")[1];
+			if (sectionA !== sectionB) {
+				return sectionA.localeCompare(sectionB);
+			}
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	});
+}

@@ -4,17 +4,10 @@ import ButtonLink from "@components/control/ButtonLink.astro";
 import WidgetLayout from "@components/widget/WidgetLayout.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
+import { getSortedCourses } from "@utils/content-utils";
 import { url } from "@utils/url-utils";
 
-const coursesCollection = await getCollection("courses");
-const courses = coursesCollection
-	.filter((entry) => entry.data.type === "course" && !entry.data.draft)
-	.sort((a, b) => {
-		if (a.data.type === "course" && b.data.type === "course") {
-			return b.data.published.valueOf() - a.data.published.valueOf();
-		}
-		return 0;
-	});
+const courses = await getSortedCourses();
 
 const COLLAPSED_HEIGHT = "7.5rem";
 const COLLAPSE_THRESHOLD = 5;

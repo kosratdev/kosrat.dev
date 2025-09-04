@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getCollection } from "astro:content";
+import { getAllCourseLessons } from "@utils/content-utils";
 import { url } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import CourseMeta from "./CourseMeta.astro";
@@ -17,9 +17,7 @@ const className = Astro.props.class;
 
 let totalLessons = 0;
 if (course.data.type === "course") {
-	const allLessons = await getCollection("courses", ({ id, data }) => {
-		return data.type === "lesson" && id.startsWith(course.slug);
-	});
+	const allLessons = await getAllCourseLessons(course.slug);
 	totalLessons = allLessons.length;
 }
 

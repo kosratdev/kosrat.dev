@@ -1,19 +1,23 @@
 ---
-import { getCollection } from "astro:content";
 import CourseCard from "@components/CourseCard.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getSortedCourses } from "@utils/content-utils";
 
-const courses = await getCollection(
-	"courses",
-	({ data }) => data.type === "course" && !data.draft,
-);
+const courses = await getSortedCourses();
+
+let delay = 0;
+const interval = 50;
 ---
 
 <MainGridLayout title="Courses">
-	<div class="flex flex-col gap-8">
+	<div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
 		{
 			courses.map((course) => (
-				<CourseCard course={course} />
+				<CourseCard 
+					course={course} 
+					class="onload-animation"
+					style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+				/>
 			))
 		}
 	</div>
