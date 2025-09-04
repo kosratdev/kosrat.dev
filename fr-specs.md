@@ -34,7 +34,7 @@ The Courses feature should be easily accessible from the home page. It will be d
 2. **Sidebar Card**: A new "Courses" card will be added to the sidebar, listing available courses.
 3. **Pinned Post**: A course can be "pinned" to appear at the top of the main post list for increase visibility.
 
-This entry points will ensure high visibility for the courses feature. 
+This entry points will ensure high visibility for the courses feature.
 
 ## Courses Screen
 
@@ -50,26 +50,33 @@ Each course tile will displays:
 6. Total number of lessons
 7. "Start Course" or "Continue" button (based on progress).
 
-On the Courses page sidebar, the "Profile" card will remain. The "Categories" card will be updated to show only course-related categories. The "Tags" card will be replaced with a "Levels" card, allowing users to filter courses by their difficulty level.
-
 ## Course Detail
 
 When a user clicks on a course, they will be navigated to the course detail page.
 
-- **Sidebar**:
-    - The sidebar will display a list of all lessons, grouped by their respective sections.
-    - Sections will be collapsible accordion elements.
-    - The section containing the currently active lesson will be expanded by default.
-    - Clicking a section title will toggle its collapsed/expanded state.
-    - Clicking a lesson title will display its content in the main content area.
-- **Content**:
-    - The main area will display the content of the selected lesson.
-    - By default, the first lesson of the first section will be displayed. If a user has existing progress, the page will open to the last lesson they were viewing.
-    - "Next" and "Previous" buttons will be displayed at the bottom of each lesson to allow for easy navigation.
-    - The first lesson will not have a "Previous" button.
-    - The last lesson of the course will have a "Finish" button instead of a "Next" button.
-    - Progress will be tracked on a per-browser basis using `localStorage`, as there is no user authentication. Clicking "Next" will mark the current lesson as completed.
-    - A "Reset Progress" button will be available at the top of the course sidebar.
+### Course Sections
+
+- The course detail page shows the course information at the top of the page.
+- Course name and its meta data will be shown.
+- A "Reset Progress" button will be available at the top of the page.
+- After the course info, the course sections will be displayed.
+- Sections will be collapsible accordion elements.
+- Clicking a section title will toggle its collapsed/expanded state.
+- Clicking a lesson title will display its content in the lesson content page.
+- The sections have a check mark to indicate that the lessons inside that section have been completed.
+- The lessons inside a section have a check mark to indicate that this lesson has been completed.
+
+## Lesson Content Page
+
+This screen will display the content of the selected lesson. It is a good idea to have the course and section info at the top of the page.
+
+### Content Specs
+
+- The lesson content will be shown as the post content (`PostPage.astro`).
+- "Next" and "Previous" buttons will be displayed at the bottom of each lesson to allow for easy navigation.
+- The first lesson of the first section will not have a "Previous" button.
+- The last lesson of the section will have a "Finish" button instead of a "Next" button.
+- Progress will be tracked on a per-browser basis using `localStorage`, as there is no user authentication. Clicking "Next" will mark the current lesson as completed.
 
 ## Course Content Management
 
