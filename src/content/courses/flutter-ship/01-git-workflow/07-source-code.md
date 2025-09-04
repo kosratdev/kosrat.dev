@@ -3,7 +3,7 @@ type: "lesson"
 title: "Source Code"
 order: 7
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # Source Code

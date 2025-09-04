@@ -1,6 +1,6 @@
 ---
 type: "section"
-title: "Git & GitHub Workflow"
+title: "ES6+ Essentials"
 order: 1
 draft: true
 ---

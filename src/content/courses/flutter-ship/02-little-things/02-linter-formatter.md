@@ -3,7 +3,7 @@ type: "lesson"
 title: "Linter & Formatter"
 order: 2
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # Linter & Formatter

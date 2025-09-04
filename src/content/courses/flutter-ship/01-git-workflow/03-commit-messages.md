@@ -3,7 +3,7 @@ type: "lesson"
 title: "Commit Messages"
 order: 3
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # Commit Messages

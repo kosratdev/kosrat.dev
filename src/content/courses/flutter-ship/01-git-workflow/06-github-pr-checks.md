@@ -3,7 +3,7 @@ type: "lesson"
 title: "GitHub PR Checks"
 order: 6
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # GitHub PR Checks

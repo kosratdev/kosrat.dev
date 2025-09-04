@@ -3,7 +3,7 @@ type: "lesson"
 title: "Git Hooks"
 order: 5
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # Git Hooks

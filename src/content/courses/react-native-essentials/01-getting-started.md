@@ -1,6 +1,6 @@
 ---
 type: "section"
-title: "Git & GitHub Workflow"
+title: "Getting Started"
 order: 1
 draft: true
 ---

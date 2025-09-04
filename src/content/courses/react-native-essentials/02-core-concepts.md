@@ -1,6 +1,6 @@
 ---
 type: "section"
-title: "Little Things That Matters Most"
+title: "Core Concepts"
 order: 2
 draft: true
 ---

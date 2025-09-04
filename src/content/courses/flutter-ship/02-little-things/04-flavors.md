@@ -3,7 +3,7 @@ type: "lesson"
 title: "Flavors"
 order: 4
 published: 2025-09-03
-draft: false
+draft: true
 ---
 
 # Flavors
