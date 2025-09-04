@@ -5,7 +5,7 @@ import WidgetLayout from "@components/widget/WidgetLayout.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getSortedCourses } from "@utils/content-utils";
-import { url } from "@utils/url-utils";
+import { getCourseUrlBySlug } from "@utils/url-utils";
 
 const courses = await getSortedCourses();
 
@@ -34,7 +34,7 @@ const style = Astro.props.style;
 		>
 			{courses.map((course) => (
 				<ButtonLink
-					url={url(`/courses/${course.slug}`)}
+					url={getCourseUrlBySlug(course.slug)}
 					label={`View the ${course.data.title} course`}
 				>
 					{course.data.title}
