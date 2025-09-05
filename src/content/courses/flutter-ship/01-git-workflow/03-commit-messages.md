@@ -1,9 +1,10 @@
 ---
 type: "lesson"
-title: "Commit Messages"
+title: "Commit Messages test"
 order: 3
 published: 2025-09-03
 draft: true
+image: "../assets/cover.webp"
 ---
 
 # Commit Messages

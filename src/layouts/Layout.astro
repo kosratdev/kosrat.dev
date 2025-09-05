@@ -565,4 +565,33 @@ if (window.swup) {
 } else {
 	document.addEventListener("swup:enable", setup)
 }
+
+// Global course section toggle functionality
+function handleCourseToggle(event: Event) {
+	const target = event.target as HTMLElement;
+	const toggle = target.closest('.section-toggle');
+	
+	if (!toggle) return;
+	
+	event.preventDefault();
+	
+	const section = toggle.closest('.course-section');
+	const content = section?.querySelector('.section-content');
+	const icon = toggle.querySelector('.expand-icon');
+	
+	if (content && icon) {
+		const isHidden = content.classList.contains('hidden');
+		
+		if (isHidden) {
+			content.classList.remove('hidden');
+			(icon as HTMLElement).style.transform = 'rotate(180deg)';
+		} else {
+			content.classList.add('hidden');
+			(icon as HTMLElement).style.transform = 'rotate(0deg)';
+		}
+	}
+}
+
+// Set up global event delegation for course toggles
+document.addEventListener('click', handleCourseToggle);
 </script>

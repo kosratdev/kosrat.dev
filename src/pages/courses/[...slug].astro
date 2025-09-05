@@ -1,6 +1,5 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getCollection } from "astro:content";
 import CourseMeta from "@components/CourseMeta.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
@@ -26,6 +25,11 @@ interface Props {
 }
 
 const { course } = Astro.props;
+
+// Helper function to remove numeric prefixes from slugs
+const cleanSlug = (slug: string): string => {
+	return slug.replace(/^\d+-/, "");
+};
 
 // Get all sections for this course
 const sections = await getSortedSections(course.slug);
@@ -84,8 +88,16 @@ const { Content } = await course.render();
 				
 				{sections.length > 0 ? (
 					<div class="space-y-3">
-						{await Promise.all(sections.map(async (section) => {
+						{await Promise.all(sections.map(async (section, sectionIndex) => {
 							const lessons = await getSortedLessons(section.slug);
+							
+							// Calculate starting lesson number for this section
+							let lessonNumberOffset = 0;
+							for (let i = 0; i < sectionIndex; i++) {
+								const previousSectionLessons = await getSortedLessons(sections[i].slug);
+								lessonNumberOffset += previousSectionLessons.length;
+							}
+							
 							return (
 								<div class="course-section border border-black/10 dark:border-white/10 rounded-lg">
 									<!-- Section Header -->
@@ -124,10 +136,13 @@ const { Content } = await course.render();
 										<div class="p-4 space-y-2">
 											{lessons.length > 0 ? (
 												<div class="lessons-container space-y-2">
-													{lessons.map((lesson) => {
-														// Extract just the section and lesson identifiers from the full slugs
-														const sectionId = section.slug.split('/').pop() || section.slug;
-														const lessonId = lesson.slug.split('/').pop() || lesson.slug;
+													{lessons.map((lesson, lessonIndex) => {
+														// Calculate continuous lesson number
+														const continuousLessonNumber = lessonNumberOffset + lessonIndex + 1;
+														
+														// Extract just the section and lesson identifiers from the full slugs and clean them
+														const sectionId = cleanSlug(section.slug.split('/').pop() || section.slug);
+														const lessonId = cleanSlug(lesson.slug.split('/').pop() || lesson.slug);
 														
 														return (
 															<a 
@@ -135,7 +150,7 @@ const { Content } = await course.render();
 																class="lesson-item flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-black/5 dark:hover:bg-white/5 border border-black/5 dark:border-white/5 transition-all group text-black dark:text-white"
 															>
 																<!-- Lesson Completion Indicator -->
-																<div class="lesson-check w-4 h-4 border-2 border-[var(--primary)] rounded-sm flex items-center justify-center">
+																<div class="lesson-check w-4 h-4 border-2 border-[var(--primary)] rounded-md flex items-center justify-center">
 																	<svg class="w-2.5 h-2.5 text-[var(--primary)] hidden" fill="currentColor" viewBox="0 0 20 20">
 																		<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
 																	</svg>
@@ -146,7 +161,7 @@ const { Content } = await course.render();
 																		{lesson.data.title}
 																	</h4>
 																	<div class="text-xs text-black/60 dark:text-white/60">
-																		{lesson.data.type === "lesson" ? `Lesson ${lesson.data.order}` : "Lesson"}
+																		{lesson.data.type === "lesson" ? `Lesson ${continuousLessonNumber}` : "Lesson"}
 																	</div>
 																</div>
 																
@@ -180,39 +195,10 @@ const { Content } = await course.render();
 </MainGridLayout>
 
 <script>
-	// Course detail page functionality
-	function initializeCourseAccordion() {
-		// Remove any existing event listeners to prevent duplicates
-		const existingToggles = document.querySelectorAll('.section-toggle');
-		existingToggles.forEach(toggle => {
-			const newToggle = toggle.cloneNode(true);
-			toggle.parentNode?.replaceChild(newToggle, toggle);
-		});
-		
-		// Section toggle functionality
-		const sectionToggles = document.querySelectorAll('.section-toggle');
-		
-		sectionToggles.forEach(toggle => {
-			toggle.addEventListener('click', () => {
-				const section = toggle.closest('.course-section');
-				const content = section?.querySelector('.section-content');
-				const icon = toggle.querySelector('.expand-icon');
-				
-				if (content && icon) {
-					const isHidden = content.classList.contains('hidden');
-					
-					if (isHidden) {
-						content.classList.remove('hidden');
-						(icon as HTMLElement).style.transform = 'rotate(180deg)';
-					} else {
-						content.classList.add('hidden');
-						(icon as HTMLElement).style.transform = 'rotate(0deg)';
-					}
-				}
-			});
-		});
-		
-		// Reset progress functionality
+	import { resetCourseProgress } from '../../utils/progress-utils';
+	
+	// Reset progress functionality
+	function initializeResetButton() {
 		const resetBtn = document.getElementById('reset-progress-btn');
 		if (resetBtn) {
 			// Clone to remove existing event listeners
@@ -222,8 +208,8 @@ const { Content } = await course.render();
 			newResetBtn.addEventListener('click', () => {
 				const courseSlug = window.location.pathname.split('/')[2];
 				if (confirm('Are you sure you want to reset all progress for this course?')) {
-					// TODO: Implement resetCourseProgress function
-					console.log('Resetting progress for course:', courseSlug);
+					resetCourseProgress(courseSlug);
+					console.log('Progress reset for course:', courseSlug);
 					// Refresh the page to update progress indicators
 					window.location.reload();
 				}
@@ -232,13 +218,16 @@ const { Content } = await course.render();
 	}
 
 	// Initialize on DOM content loaded (initial page load)
-	document.addEventListener('DOMContentLoaded', initializeCourseAccordion);
+	document.addEventListener('DOMContentLoaded', initializeResetButton);
 	
 	// Initialize on Swup page transitions
-	document.addEventListener('swup:contentReplaced', initializeCourseAccordion);
+	document.addEventListener('swup:contentReplaced', initializeResetButton);
 	
 	// Fallback for View Transitions API (if used instead of Swup)
-	document.addEventListener('astro:page-load', initializeCourseAccordion);
+	document.addEventListener('astro:page-load', initializeResetButton);
+	
+	// Additional fallback for view transitions
+	document.addEventListener('astro:after-swap', initializeResetButton);
 </script>
 
 <style>

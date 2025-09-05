@@ -45,6 +45,7 @@ const coursesCollection = defineCollection({
 			published: z.date(),
 			updated: z.date().optional(),
 			draft: z.boolean().optional().default(false),
+			image: z.string().optional().default(""),
 
 			/* For internal use */
 			prevTitle: z.string().default(""),
