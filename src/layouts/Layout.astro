@@ -146,6 +146,360 @@ const bannerOffset =
 
 		<slot name="head"></slot>
 
+		<!-- Global progress tracking script -->
+		<script is:inline>
+			// Global Progress Tracking Script
+			// This script runs on all pages to handle lesson progress tracking
+
+			(function() {
+				// Progress tracking utility functions
+				const PROGRESS_KEY_PREFIX = "course_progress_";
+
+				function getCourseProgress(courseSlug) {
+					const key = PROGRESS_KEY_PREFIX + courseSlug;
+					const stored = localStorage.getItem(key);
+
+					if (!stored) {
+						return {
+							completedLessons: [],
+							startedAt: new Date().toISOString(),
+							lastUpdated: new Date().toISOString(),
+						};
+					}
+
+					try {
+						return JSON.parse(stored);
+					} catch (error) {
+						console.error("Error parsing course progress:", error);
+						return {
+							completedLessons: [],
+							startedAt: new Date().toISOString(),
+							lastUpdated: new Date().toISOString(),
+						};
+					}
+				}
+
+				function markLessonCompleted(courseSlug, lessonSlug) {
+					try {
+						const progress = getCourseProgress(courseSlug);
+
+						// Add lesson to completed list if not already there
+						if (!progress.completedLessons.includes(lessonSlug)) {
+							progress.completedLessons.push(lessonSlug);
+						}
+
+						// Update timestamps
+						progress.lastViewedLesson = lessonSlug;
+						progress.lastUpdated = new Date().toISOString();
+
+						// Save to localStorage
+						const key = PROGRESS_KEY_PREFIX + courseSlug;
+						localStorage.setItem(key, JSON.stringify(progress));
+						
+						// Dispatch progress update event
+						const event = new CustomEvent('progressUpdated', { 
+							detail: { courseSlug, lessonSlug } 
+						});
+						document.dispatchEvent(event);
+						
+						// Also immediately update indicators if we're on the course overview page
+						if (window.location.pathname.includes('/courses/') && window.location.pathname.split('/').length === 3) {
+							setTimeout(() => {
+								updateProgressIndicators();
+							}, 50);
+						}
+						
+						return true;
+					} catch (error) {
+						console.error('Error saving progress:', error);
+						return false;
+					}
+				}
+
+				function resetCourseProgress(courseSlug) {
+					const key = PROGRESS_KEY_PREFIX + courseSlug;
+					localStorage.removeItem(key);
+					
+					// Dispatch progress update event
+					const event = new CustomEvent('progressUpdated', { 
+						detail: { courseSlug, lessonSlug: null } 
+					});
+					document.dispatchEvent(event);
+				}
+
+				function isCourseStarted(courseSlug) {
+					const progress = getCourseProgress(courseSlug);
+					return progress.completedLessons.length > 0;
+				}
+
+				function isCourseCompleted(courseSlug, totalLessons) {
+					const progress = getCourseProgress(courseSlug);
+					return progress.completedLessons.length >= totalLessons && totalLessons > 0;
+				}
+
+				function getCourseCompletionPercentage(courseSlug, totalLessons) {
+					const progress = getCourseProgress(courseSlug);
+					if (totalLessons === 0) return 0;
+					return Math.round((progress.completedLessons.length / totalLessons) * 100);
+				}
+
+				// Make functions globally available
+				window.courseProgressUtils = {
+					getCourseProgress,
+					markLessonCompleted,
+					resetCourseProgress,
+					isCourseStarted,
+					isCourseCompleted,
+					getCourseCompletionPercentage
+				};
+
+				// Main initialization function
+				function initializeProgressTracking() {
+					// Small delay to ensure DOM is ready
+					setTimeout(() => {
+						setupPageFunctionality();
+					}, 150);
+				}
+
+				function setupPageFunctionality() {
+					const currentPath = window.location.pathname;
+					const pathSegments = currentPath.split('/').filter(segment => segment !== ''); // Remove empty segments
+					
+					// Setup lesson page functionality (e.g., /courses/flutter-ship/git-workflow/overview/)
+					if (currentPath.includes('/courses/') && pathSegments.length >= 4) {
+						setupLessonPage();
+					}
+					
+					// Setup course overview page functionality (e.g., /courses/flutter-ship/)
+					if (currentPath.includes('/courses/') && pathSegments.length === 2) {
+						setupCoursePage();
+					}
+					
+					// Always setup course cards (they might be on any page)
+					setupCourseCards();
+				}
+
+				function setupLessonPage() {
+					// Setup next button
+					const nextBtn = document.querySelector('.lesson-next-btn');
+					if (nextBtn && !nextBtn.dataset.progressSetup) {
+						nextBtn.dataset.progressSetup = 'true';
+						
+						nextBtn.addEventListener('click', (e) => {
+							e.preventDefault();
+							
+							const courseSlug = nextBtn.getAttribute('data-course');
+							const nextUrl = nextBtn.getAttribute('href');
+							
+							if (courseSlug) {
+								const currentPath = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+								const success = markLessonCompleted(courseSlug, currentPath);
+								
+								// Navigate after a brief delay
+								setTimeout(() => {
+									if (nextUrl) {
+										window.location.href = nextUrl;
+									}
+								}, 100);
+							}
+						});
+					}
+
+					// Setup finish button
+					const finishBtn = document.querySelector('.lesson-finish-btn');
+					if (finishBtn && !finishBtn.dataset.progressSetup) {
+						finishBtn.dataset.progressSetup = 'true';
+						
+						finishBtn.addEventListener('click', (e) => {
+							e.preventDefault();
+							
+							const courseSlug = finishBtn.getAttribute('data-course');
+							
+							if (courseSlug) {
+								const currentPath = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+								
+								const success = markLessonCompleted(courseSlug, currentPath);
+								
+								if (success) {
+									alert('Congratulations! You have completed the course!');
+									setTimeout(() => {
+										window.location.href = `/courses/${courseSlug}/`;
+									}, 1000);
+								} else {
+									alert('There was an error saving your progress. Please try again.');
+								}
+							}
+						});
+					}
+
+				}
+
+				function setupCoursePage() {
+					const courseSlug = window.location.pathname.split('/')[2];
+					if (!courseSlug) return;
+
+					// Setup reset button
+					const resetBtn = document.getElementById('reset-progress-btn');
+					if (resetBtn && !resetBtn.dataset.progressSetup) {
+						resetBtn.dataset.progressSetup = 'true';
+						resetBtn.addEventListener('click', () => {
+							if (confirm('Are you sure you want to reset all progress for this course?')) {
+								resetCourseProgress(courseSlug);
+								updateProgressIndicators();
+								alert('Progress reset successfully!');
+							}
+						});
+					}
+
+					// Always update progress indicators when setting up course page
+					updateProgressIndicators();
+				}
+
+				function setupCourseCards() {
+					const courseButtons = document.querySelectorAll('.course-btn[data-course-slug]');
+					
+					courseButtons.forEach((button) => {
+						if (button.dataset.progressSetup) return;
+						button.dataset.progressSetup = 'true';
+						
+						const courseSlug = button.getAttribute('data-course-slug');
+						const totalLessons = Number.parseInt(button.getAttribute('data-total-lessons') || '0');
+						
+						if (!courseSlug) return;
+						
+						const btnText = button.querySelector('.course-btn-text');
+						const btnIcon = button.querySelector('.course-icon');
+						const progressDiv = button.querySelector('.course-progress');
+						const progressText = button.querySelector('.progress-text');
+						
+						if (!btnText || !btnIcon || !progressDiv || !progressText) return;
+						
+						const started = isCourseStarted(courseSlug);
+						const completed = isCourseCompleted(courseSlug, totalLessons);
+						const percentage = getCourseCompletionPercentage(courseSlug, totalLessons);
+						
+						if (completed) {
+							btnText.textContent = 'Completed';
+							btnIcon.setAttribute('name', 'material-symbols:check-circle-rounded');
+							progressDiv.classList.add('hidden');
+						} else if (started) {
+							btnText.textContent = 'Continue';
+							btnIcon.setAttribute('name', 'material-symbols:resume-rounded');
+							progressText.textContent = `${percentage}% complete`;
+							progressDiv.classList.remove('hidden');
+						} else {
+							btnText.textContent = 'Start Course';
+							btnIcon.setAttribute('name', 'material-symbols:play-arrow-rounded');
+							progressDiv.classList.add('hidden');
+						}
+					});
+				}
+
+				function updateProgressIndicators() {
+					const courseSlug = window.location.pathname.split('/')[2];
+					if (!courseSlug) return;
+					
+					const progress = getCourseProgress(courseSlug);
+					
+					// Update section completion indicators
+					document.querySelectorAll('.section-check').forEach((sectionCheck) => {
+						const sectionElement = sectionCheck.closest('.course-section');
+						if (!sectionElement) return;
+						
+						const lessonElements = sectionElement.querySelectorAll('.lesson-item');
+						const lessonCount = lessonElements.length;
+						
+						let completedLessons = 0;
+						lessonElements.forEach((lessonElement) => {
+							const lessonHref = lessonElement.getAttribute('href');
+							if (lessonHref) {
+								const lessonPath = lessonHref.replace(/^\//, '').replace(/\/$/, '');
+								const isCompleted = progress.completedLessons.includes(lessonPath);
+								if (isCompleted) {
+									completedLessons++;
+								}
+							}
+						});
+						
+						const sectionCheckmark = sectionCheck.querySelector('svg');
+						if (sectionCheckmark) {
+							if (completedLessons === lessonCount && lessonCount > 0) {
+								sectionCheckmark.classList.remove('hidden');
+								sectionCheck.classList.add('bg-[var(--primary)]');
+								sectionCheck.classList.add('border-[var(--primary)]');
+								sectionCheckmark.classList.add('text-white');
+							} else {
+								sectionCheckmark.classList.add('hidden');
+								sectionCheck.classList.remove('bg-[var(--primary)]');
+								sectionCheck.classList.remove('border-[var(--primary)]');
+								sectionCheckmark.classList.remove('text-white');
+							}
+						}
+					});
+					
+					// Update lesson completion indicators
+					document.querySelectorAll('.lesson-check').forEach((lessonCheck) => {
+						const lessonElement = lessonCheck.closest('.lesson-item');
+						if (!lessonElement) return;
+						
+						const lessonHref = lessonElement.getAttribute('href');
+						if (!lessonHref) return;
+						
+						const lessonPath = lessonHref.replace(/^\//, '').replace(/\/$/, '');
+						const lessonCheckmark = lessonCheck.querySelector('svg');
+						
+						if (lessonCheckmark) {
+							const isCompleted = progress.completedLessons.includes(lessonPath);
+							if (isCompleted) {
+								lessonCheckmark.classList.remove('hidden');
+								lessonCheck.classList.add('bg-[var(--primary)]');
+								lessonCheck.classList.add('border-[var(--primary)]');
+								lessonCheckmark.classList.add('text-white');
+							} else {
+								lessonCheckmark.classList.add('hidden');
+								lessonCheck.classList.remove('bg-[var(--primary)]');
+								lessonCheck.classList.remove('border-[var(--primary)]');
+								lessonCheckmark.classList.remove('text-white');
+							}
+						}
+					});
+				}
+
+				// Event listeners for different types of navigation
+				function setupEventListeners() {
+					// Handle initial page load
+					if (document.readyState === 'loading') {
+						document.addEventListener('DOMContentLoaded', initializeProgressTracking);
+					} else {
+						initializeProgressTracking();
+					}
+
+					// Handle Astro view transitions
+					document.addEventListener('astro:page-load', initializeProgressTracking);
+					
+					// Handle other navigation events
+					document.addEventListener('swup:contentReplaced', initializeProgressTracking);
+					
+					// Handle browser navigation
+					window.addEventListener('popstate', () => {
+						setTimeout(initializeProgressTracking, 200);
+					});
+
+					// Listen for progress updates to refresh indicators
+					document.addEventListener('progressUpdated', () => {
+						setTimeout(() => {
+							setupCourseCards();
+							updateProgressIndicators();
+						}, 100);
+					});
+				}
+
+				// Initialize everything
+				setupEventListeners();
+
+			})();
+		</script>
+
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 
 	</head>

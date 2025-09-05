@@ -9,7 +9,7 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
-import ImageWrapper from "../../../../components/misc/ImageWrapper.astro";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
 import PostMetadata from "../../../../components/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../../../config";
 import {
@@ -77,6 +77,11 @@ interface Props {
 
 const { course, section, lesson } = Astro.props;
 
+// Helper function to remove numeric prefixes from slugs
+const cleanSlug = (slug: string): string => {
+	return slug.replace(/^\d+-/, "");
+};
+
 // Get all sections and lessons for navigation
 const allSections = await getSortedSections(course.slug);
 const allLessons = await getAllCourseLessons(course.slug);
@@ -127,11 +132,17 @@ if (previousLesson) {
 
 	if (prevLessonSectionSlug === currentSectionSlug) {
 		// Previous lesson in same section
+		const parts = previousLesson.slug.split("/");
+		const sectionId = cleanSlug(parts[parts.length - 2]);
+		const lessonId = cleanSlug(parts[parts.length - 1]);
+		const url = `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
+
 		previousNav = {
 			type: "lesson",
 			title: previousLesson.data.title,
 			subtitle: "Previous",
 			lesson: previousLesson,
+			url: url,
 		};
 	} else {
 		// Previous lesson is in different section (previous section)
@@ -139,11 +150,17 @@ if (previousLesson) {
 			(s) => s.slug === prevLessonSectionSlug,
 		);
 		if (prevSection) {
+			const parts = previousLesson.slug.split("/");
+			const sectionId = cleanSlug(parts[parts.length - 2]);
+			const lessonId = cleanSlug(parts[parts.length - 1]);
+			const url = `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
+
 			previousNav = {
 				type: "section",
 				title: prevSection.data.title,
 				subtitle: "Previous Section",
 				lesson: previousLesson,
+				url: url,
 			};
 		}
 	}
@@ -161,11 +178,17 @@ if (nextLesson) {
 
 	if (nextLessonSectionSlug === currentSectionSlug) {
 		// Next lesson in same section
+		const parts = nextLesson.slug.split("/");
+		const sectionId = cleanSlug(parts[parts.length - 2]);
+		const lessonId = cleanSlug(parts[parts.length - 1]);
+		const url = `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
+
 		nextNav = {
 			type: "lesson",
 			title: nextLesson.data.title,
 			subtitle: "Next",
 			lesson: nextLesson,
+			url: url,
 		};
 	} else {
 		// Next lesson is in different section (next section)
@@ -173,11 +196,17 @@ if (nextLesson) {
 			(s) => s.slug === nextLessonSectionSlug,
 		);
 		if (nextSection) {
+			const parts = nextLesson.slug.split("/");
+			const sectionId = cleanSlug(parts[parts.length - 2]);
+			const lessonId = cleanSlug(parts[parts.length - 1]);
+			const url = `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
+
 			nextNav = {
 				type: "section",
 				title: nextSection.data.title,
 				subtitle: "Next Section",
 				lesson: nextLesson,
+				url: url,
 			};
 		}
 	}
@@ -308,13 +337,7 @@ const jsonLd = {
                 <div class="flex-1">
                     {previousNav ? (
                         <a
-                            href={(() => {
-                                const lesson = previousNav.lesson!;
-                                const parts = lesson.slug.split('/');
-                                const sectionId = parts[parts.length - 2];
-                                const lessonId = parts[parts.length - 1];
-                                return `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
-                            })()}
+                            href={previousNav.url}
                             class="group flex items-center gap-3 p-3 border-2 border-black/10 dark:border-white/10 hover:border-black/60 dark:hover:border-white/70 rounded-lg transition-colors text-black dark:text-white shadow-none hover:shadow-none"
                         >
                             <div class="flex-shrink-0">
@@ -367,13 +390,7 @@ const jsonLd = {
                         </button>
                     ) : nextNav ? (
                         <a
-                            href={(() => {
-                                const lesson = nextNav.lesson!;
-                                const parts = lesson.slug.split('/');
-                                const sectionId = parts[parts.length - 2];
-                                const lessonId = parts[parts.length - 1];
-                                return `${getCourseUrlBySlug(course.slug)}${sectionId}/${lessonId}/`;
-                            })()}
+                            href={nextNav.url}
                             class="group w-full flex items-center gap-3 p-3 border-2 border-black/10 dark:border-white/10 hover:border-black/60 dark:hover:border-white/70 rounded-lg transition-colors text-black dark:text-white lesson-next-btn shadow-none hover:shadow-none"
                             data-course={course.slug}
                             data-lesson={lesson.slug}
@@ -408,82 +425,7 @@ const jsonLd = {
     <Comment post={lesson}></Comment>
 </MainGridLayout>
 
-<script>
-	import { markLessonCompleted } from '../../../../utils/progress-utils';
-
-	function initializeLessonPage() {
-		// Mark lesson as completed when clicking "Next"
-		const nextBtn = document.querySelector('.lesson-next-btn') as HTMLElement;
-		if (nextBtn) {
-			nextBtn.addEventListener('click', () => {
-				const courseSlug = nextBtn.dataset.course;
-				const lessonSlug = nextBtn.dataset.lesson;
-				
-				if (courseSlug && lessonSlug) {
-					markLessonCompleted(courseSlug, lessonSlug);
-					console.log('Lesson marked as completed:', { courseSlug, lessonSlug });
-				}
-			});
-		}
-
-		// Mark course as completed when clicking "Finish"
-		const finishBtn = document.querySelector('.lesson-finish-btn') as HTMLElement;
-		if (finishBtn) {
-			finishBtn.addEventListener('click', () => {
-				const courseSlug = finishBtn.dataset.course;
-				const lessonSlug = finishBtn.dataset.lesson;
-				
-				if (courseSlug && lessonSlug) {
-					markLessonCompleted(courseSlug, lessonSlug);
-					console.log('Lesson and course marked as completed:', { courseSlug, lessonSlug });
-					
-					// Show completion message or redirect to course page
-					alert('Congratulations! You have completed the course!');
-					window.location.href = `/courses/${courseSlug}/`;
-				}
-			});
-		}
-	}
-
-	// Initialize on DOM content loaded (initial page load)
-	document.addEventListener('DOMContentLoaded', initializeLessonPage);
-	
-	// Initialize on Swup page transitions
-	document.addEventListener('swup:contentReplaced', initializeLessonPage);
-	
-	// Fallback for View Transitions API
-	document.addEventListener('astro:page-load', initializeLessonPage);
-</script>
-
 <style>
-	/* Responsive navigation on mobile */
-	@media (max-width: 768px) {
-		.lesson-nav {
-			flex-direction: column;
-			gap: 1rem;
-		}
-		
-		.lesson-nav .flex-1 {
-			flex: none;
-			width: 100%;
-		}
-		
-		.lesson-nav .flex-shrink-0 {
-			order: -1;
-		}
-	}
-</style>
-	
-	// Initialize on Swup page transitions
-	document.addEventListener('swup:contentReplaced', initializeLessonPage);
-	
-	// Fallback for View Transitions API
-	document.addEventListener('astro:page-load', initializeLessonPage);
-</script>
-
-<style>
-	/* Removed hover transform and box-shadow effects */
-	
 	/* Responsive navigation on mobile */
 	@media (max-width: 768px) {
 		.lesson-nav {

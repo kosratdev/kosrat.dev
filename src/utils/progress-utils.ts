@@ -58,10 +58,6 @@ export function markLessonCompleted(
 	// Save to localStorage
 	const key = PROGRESS_KEY_PREFIX + courseSlug;
 	localStorage.setItem(key, JSON.stringify(progress));
-
-	console.log(
-		`Lesson marked as completed: ${lessonSlug} in course ${courseSlug}`,
-	);
 }
 
 /**
@@ -81,7 +77,6 @@ export function isLessonCompleted(
 export function resetCourseProgress(courseSlug: string): void {
 	const key = PROGRESS_KEY_PREFIX + courseSlug;
 	localStorage.removeItem(key);
-	console.log(`Progress reset for course: ${courseSlug}`);
 }
 
 /**

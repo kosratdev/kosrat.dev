@@ -194,42 +194,6 @@ const { Content } = await course.render();
 	</div>
 </MainGridLayout>
 
-<script>
-	import { resetCourseProgress } from '../../utils/progress-utils';
-	
-	// Reset progress functionality
-	function initializeResetButton() {
-		const resetBtn = document.getElementById('reset-progress-btn');
-		if (resetBtn) {
-			// Clone to remove existing event listeners
-			const newResetBtn = resetBtn.cloneNode(true);
-			resetBtn.parentNode?.replaceChild(newResetBtn, resetBtn);
-			
-			newResetBtn.addEventListener('click', () => {
-				const courseSlug = window.location.pathname.split('/')[2];
-				if (confirm('Are you sure you want to reset all progress for this course?')) {
-					resetCourseProgress(courseSlug);
-					console.log('Progress reset for course:', courseSlug);
-					// Refresh the page to update progress indicators
-					window.location.reload();
-				}
-			});
-		}
-	}
-
-	// Initialize on DOM content loaded (initial page load)
-	document.addEventListener('DOMContentLoaded', initializeResetButton);
-	
-	// Initialize on Swup page transitions
-	document.addEventListener('swup:contentReplaced', initializeResetButton);
-	
-	// Fallback for View Transitions API (if used instead of Swup)
-	document.addEventListener('astro:page-load', initializeResetButton);
-	
-	// Additional fallback for view transitions
-	document.addEventListener('astro:after-swap', initializeResetButton);
-</script>
-
 <style>
 	.course-section {
 		transition: all 0.2s ease;
@@ -241,5 +205,14 @@ const { Content } = await course.render();
 	
 	.expand-icon {
 		transition: transform 0.2s ease;
+	}
+	
+	/* Smooth transitions for completion indicators */
+	.section-check, .lesson-check {
+		transition: all 0.3s ease;
+	}
+	
+	.section-check svg, .lesson-check svg {
+		transition: color 0.3s ease;
 	}
 </style>
