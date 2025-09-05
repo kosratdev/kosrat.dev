@@ -31,6 +31,41 @@ const fakeResult: SearchResult[] = [
 	},
 ];
 
+const getContentType = (
+	url: string,
+): { type: string; label: string; color: string } => {
+	if (url.includes("/courses/") && url.split("/").length > 4) {
+		// URL pattern: /courses/course-slug/section-slug/lesson-slug/
+		return {
+			type: "lesson",
+			label: "Lesson",
+			color:
+				"bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
+		};
+	}
+	if (url.includes("/courses/")) {
+		// URL pattern: /courses/course-slug/
+		return {
+			type: "course",
+			label: "Course",
+			color:
+				"bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+		};
+	}
+	if (url.includes("/posts/")) {
+		return {
+			type: "post",
+			label: "Post",
+			color: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+		};
+	}
+	return {
+		type: "page",
+		label: "Page",
+		color: "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200",
+	};
+};
+
 const togglePanel = () => {
 	const panel = document.getElementById("search-panel");
 	panel?.classList.toggle("float-panel-closed");
@@ -174,13 +209,20 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
 
     <!-- search results -->
     {#each result as item}
+        {@const contentType = getContentType(item.url)}
         <a href={item.url}
            class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
        rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
-            <div class="transition text-90 inline-flex font-bold group-hover:text-[var(--primary)]">
-                {item.meta.title}<Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
+            <div class="transition text-90 flex items-center gap-2 font-bold group-hover:text-[var(--primary)]">
+                <span class="px-2 py-1 text-xs rounded-full font-normal flex-shrink-0 {contentType.color}">
+                    {contentType.label}
+                </span>
+                <span class="flex-1 min-w-0">
+                    {item.meta.title}
+                </span>
+                <Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)] flex-shrink-0"></Icon>
             </div>
-            <div class="transition text-sm text-50">
+            <div class="transition text-sm text-50 ml-2">
                 {@html item.excerpt}
             </div>
         </a>

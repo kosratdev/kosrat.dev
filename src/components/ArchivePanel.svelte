@@ -159,10 +159,8 @@ onMount(async () => {
                     {group.year}
                 </div>
                 <div class="w-[15%] md:w-[10%]">
-                    <div
-                            class="h-3 w-3 bg-none rounded-full outline outline-[var(--primary)] mx-auto
-                  -outline-offset-[2px] z-50 outline-3"
-                    />
+                  <div class="h-3 w-3 bg-none rounded-full outline outline-[var(--primary)] mx-auto -outline-offset-[2px] z-50 outline-3">
+                  </div>
                 </div>
                 <div class="w-[70%] md:w-[80%] transition text-left text-50">
                     {getContentCounts(group.content)}
