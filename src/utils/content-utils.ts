@@ -46,6 +46,92 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 
 	return sortedPostsList;
 }
+
+// Combined content type for Archive page
+export type ArchiveContentItem = {
+	slug: string;
+	type: "post" | "course" | "lesson";
+	data: {
+		title: string;
+		published: Date;
+		tags?: string[];
+		category?: string;
+		courseTitle?: string; // For lessons
+		sectionTitle?: string; // For lessons
+	};
+};
+
+export async function getCombinedArchiveContent(): Promise<
+	ArchiveContentItem[]
+> {
+	const posts = await getSortedPostsList();
+	const courses = await getSortedCourses();
+
+	const combinedContent: ArchiveContentItem[] = [];
+
+	// Add posts
+	posts.forEach((post) => {
+		combinedContent.push({
+			slug: post.slug,
+			type: "post",
+			data: {
+				title: post.data.title,
+				published: post.data.published,
+				tags: post.data.tags,
+				category: post.data.category || undefined,
+			},
+		});
+	});
+
+	// Add courses
+	courses.forEach((course) => {
+		if (course.data.type === "course") {
+			combinedContent.push({
+				slug: course.slug,
+				type: "course",
+				data: {
+					title: course.data.title,
+					published: course.data.published,
+					category: course.data.category,
+				},
+			});
+		}
+	});
+
+	// Add lessons
+	for (const course of courses) {
+		if (course.data.type === "course") {
+			const sections = await getSortedSections(course.slug);
+			for (const section of sections) {
+				const lessons = await getSortedLessons(section.slug);
+				lessons.forEach((lesson) => {
+					if (lesson.data.type === "lesson") {
+						combinedContent.push({
+							slug: lesson.slug,
+							type: "lesson",
+							data: {
+								title: lesson.data.title,
+								published: lesson.data.published,
+								courseTitle: course.data.title,
+								sectionTitle: section.data.title,
+							},
+						});
+					}
+				});
+			}
+		}
+	}
+
+	// Sort by publication date (newest first)
+	combinedContent.sort((a, b) => {
+		const dateA = new Date(a.data.published);
+		const dateB = new Date(b.data.published);
+		return dateA > dateB ? -1 : 1;
+	});
+
+	return combinedContent;
+}
+
 export type Tag = {
 	name: string;
 	count: number;

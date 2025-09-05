@@ -20,6 +20,29 @@ export function getCourseUrlBySlug(slug: string): string {
 	return url(`/courses/${slug}/`);
 }
 
+export function getLessonUrlBySlug(lessonSlug: string): string {
+	// Helper function to remove numeric prefixes from slugs
+	const cleanSlug = (slug: string): string => {
+		return slug.replace(/^\d+-/, "");
+	};
+
+	// lessonSlug format: "course-slug/section-slug/lesson-slug"
+	const parts = lessonSlug.split('/');
+	if (parts.length >= 3) {
+		const courseSlug = parts[0];
+		const sectionSlug = parts[1];
+		const lessonPart = parts[2];
+		
+		// Clean the section and lesson slugs to remove numeric prefixes
+		const sectionId = cleanSlug(sectionSlug);
+		const lessonId = cleanSlug(lessonPart);
+		
+		return url(`/courses/${courseSlug}/${sectionId}/${lessonId}/`);
+	}
+	// Fallback
+	return url(`/${lessonSlug}/`);
+}
+
 export function getTagUrl(tag: string): string {
 	if (!tag) return url("/archive/");
 	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
