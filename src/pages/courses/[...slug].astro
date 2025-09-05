@@ -47,9 +47,18 @@ const { Content } = await course.render();
 			<!-- Course Header -->
 			<div class="mb-6">
 				<!-- Course Title -->
-				<h1 class="text-3xl md:text-4xl font-bold mb-4 text-black/90 dark:text-white/90">
-					{course.data.title}
-				</h1>
+				<div class="relative onload-animation">
+					<div
+						data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
+						class="transition w-full block font-bold mb-3
+						text-3xl md:text-[2.25rem]/[2.75rem]
+						text-black/90 dark:text-white/90
+						md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
+						before:absolute before:top-[0.75rem] before:left-[-1.125rem]
+					">
+						{course.data.title}
+					</div>
+				</div>
 				
 				<!-- Course Metadata -->
 				{course.data.type === "course" && (
