@@ -295,10 +295,21 @@ const bannerOffset =
 								const currentPath = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
 								const success = markLessonCompleted(courseSlug, currentPath);
 								
-								// Navigate after a brief delay
+								// Use Astro's client-side navigation instead of full page refresh
 								setTimeout(() => {
 									if (nextUrl) {
-										window.location.href = nextUrl;
+										// Check if Astro's navigate function is available
+										if (window.astro && window.astro.navigate) {
+											window.astro.navigate(nextUrl);
+										} else {
+											// Fallback: simulate a click on the link to use view transitions
+											const tempLink = document.createElement('a');
+											tempLink.href = nextUrl;
+											tempLink.style.display = 'none';
+											document.body.appendChild(tempLink);
+											tempLink.click();
+											document.body.removeChild(tempLink);
+										}
 									}
 								}, 100);
 							}
@@ -323,7 +334,18 @@ const bannerOffset =
 								if (success) {
 									alert('Congratulations! You have completed the course!');
 									setTimeout(() => {
-										window.location.href = `/courses/${courseSlug}/`;
+										// Use Astro's client-side navigation
+										if (window.astro && window.astro.navigate) {
+											window.astro.navigate(`/courses/${courseSlug}/`);
+										} else {
+											// Fallback: simulate a click to use view transitions
+											const tempLink = document.createElement('a');
+											tempLink.href = `/courses/${courseSlug}/`;
+											tempLink.style.display = 'none';
+											document.body.appendChild(tempLink);
+											tempLink.click();
+											document.body.removeChild(tempLink);
+										}
 									}, 1000);
 								} else {
 									alert('There was an error saving your progress. Please try again.');
