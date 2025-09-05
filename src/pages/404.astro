@@ -1,0 +1,53 @@
+---
+import { Icon } from "astro-icon/components";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+---
+
+<MainGridLayout title="Page Not Found">
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
+		<div class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">
+			<div class="text-center py-12">
+				<!-- 404 Icon -->
+				<div class="mb-6">
+					<Icon name="material-symbols:error-outline" class="w-24 h-24 mx-auto text-[var(--primary)] opacity-50" />
+				</div>
+				
+				<!-- Error Message -->
+				<h1 class="text-4xl font-bold text-black dark:text-white mb-4">
+					404 - Page Not Found
+				</h1>
+				
+				<p class="text-lg text-black/60 dark:text-white/60 mb-8 max-w-md mx-auto">
+					Sorry, the page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.
+				</p>
+				
+				<!-- Action Buttons -->
+				<div class="flex flex-col sm:flex-row gap-4 justify-center">
+					<a 
+						href="/"
+						class="flex items-center justify-center gap-2 bg-[var(--primary)] text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
+					>
+						<Icon name="material-symbols:home" class="w-5 h-5" />
+						Go Home
+					</a>
+					
+					<a 
+						href="/courses/"
+						class="flex items-center justify-center gap-2 border border-[var(--primary)] text-[var(--primary)] px-6 py-3 rounded-lg hover:bg-[var(--primary)] hover:text-white transition-all font-medium"
+					>
+						<Icon name="material-symbols:school" class="w-5 h-5" />
+						Browse Courses
+					</a>
+					
+					<button 
+						onclick="history.back()"
+						class="flex items-center justify-center gap-2 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white px-6 py-3 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all font-medium"
+					>
+						<Icon name="material-symbols:arrow-back" class="w-5 h-5" />
+						Go Back
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
