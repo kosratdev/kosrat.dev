@@ -15,6 +15,7 @@ import {
 	generateKeywords,
 	generateMetaDescription,
 } from "@utils/seo-utils";
+import { cleanSlug } from "@utils/slug-utils";
 import { getCourseUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 
@@ -36,11 +37,6 @@ const { course } = Astro.props;
 if (course.data.type !== "course") {
 	throw new Error("Expected course entry");
 }
-
-// Helper function to remove numeric prefixes from slugs
-const cleanSlug = (slug: string): string => {
-	return slug.replace(/^\d+-/, "");
-};
 
 // Get all sections for this course
 const sections = await getSortedSections(course.slug);
