@@ -12,11 +12,10 @@ import {
 	getSortedSections,
 } from "@utils/content/course-utils";
 import {
-	generateCoursePageTitle,
-	generateCourseStructuredData,
-	generateKeywords,
-	generateMetaDescription,
-} from "@utils/seo-utils";
+	keywordGenerator,
+	metadataGenerator,
+	structuredDataFactory,
+} from "@utils/seo";
 import { cleanSlug } from "@utils/slug-utils";
 import { assertIsCourse } from "@utils/type-guards";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
@@ -51,9 +50,9 @@ const { Content } = await course.render();
 // SEO enhancements
 const baseUrl =
 	Astro.site?.toString().replace(/\/$/, "") || "https://kosrat.dev";
-const pageTitle = generateCoursePageTitle(course);
-const description = generateMetaDescription(course);
-const keywords = generateKeywords(course, undefined, [
+const pageTitle = metadataGenerator.generateCoursePageTitle(course);
+const description = metadataGenerator.generateCourseMetaDescription(course);
+const keywords = keywordGenerator.generateKeywords(course, undefined, [
 	"course",
 	"tutorial",
 	"programming",
@@ -63,11 +62,10 @@ const keywords = generateKeywords(course, undefined, [
 	"android",
 	"ios",
 ]);
-const structuredData = generateCourseStructuredData(
+const structuredData = structuredDataFactory.generateCourseStructuredData(
 	course,
 	totalLessons.length,
 	sections,
-	baseUrl,
 );
 ---
 

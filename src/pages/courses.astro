@@ -2,7 +2,7 @@
 import CourseCard from "@components/CourseCard.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedCourses } from "@utils/content/course-utils";
-import { generateCourseListingStructuredData } from "@utils/seo-utils";
+import { structuredDataFactory } from "@utils/seo";
 
 const courses = await getSortedCourses();
 
@@ -19,7 +19,8 @@ const keywords = [
 	"software development",
 	"mobile development",
 ];
-const structuredData = generateCourseListingStructuredData(courses, baseUrl);
+const structuredData =
+	structuredDataFactory.generateCourseListingStructuredData(courses);
 
 let delay = 0;
 const interval = 50;

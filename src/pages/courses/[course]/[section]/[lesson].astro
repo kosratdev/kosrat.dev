@@ -20,11 +20,10 @@ import {
 } from "@utils/content/course-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import {
-	generateCoursePageTitle,
-	generateKeywords,
-	generateLessonStructuredData,
-	generateMetaDescription,
-} from "@utils/seo-utils";
+	keywordGenerator,
+	metadataGenerator,
+	structuredDataFactory,
+} from "@utils/seo";
 import { cleanSlug } from "@utils/slug-utils";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
@@ -234,18 +233,20 @@ const { Content, headings, remarkPluginFrontmatter } = await lesson.render();
 // SEO enhancements
 const baseUrl =
 	Astro.site?.toString().replace(/\/$/, "") || "https://kosrat.dev";
-const pageTitle = generateCoursePageTitle(course, lesson);
-const description = generateMetaDescription(course, lesson);
-const keywords = generateKeywords(course, lesson, [
+const pageTitle = metadataGenerator.generateCoursePageTitle(course, lesson);
+const description = metadataGenerator.generateCourseMetaDescription(
+	course,
+	lesson,
+);
+const keywords = keywordGenerator.generateKeywords(course, lesson, [
 	"lesson",
 	"tutorial",
 	section.data.title.toLowerCase(),
 ]);
-const structuredData = generateLessonStructuredData(
+const structuredData = structuredDataFactory.generateLessonStructuredData(
 	lesson,
 	course,
 	section,
-	baseUrl,
 );
 
 // Create JSON-LD for lessons (similar to posts) - keeping existing for compatibility
