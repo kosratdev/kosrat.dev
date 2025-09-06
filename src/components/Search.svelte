@@ -54,10 +54,8 @@ const handleResultClick = (item: SearchResult, index: number) => {
 		searchLocation: keywordDesktop ? "desktop" : "mobile",
 	});
 
-	// Close search panel after click (mobile)
-	if (window.innerWidth < 1024) {
-		togglePanel();
-	}
+	// Close search panel after click (both desktop and mobile)
+	togglePanel();
 };
 
 // Specific analytics function types
