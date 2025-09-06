@@ -30,7 +30,7 @@ import { redirects } from "./src/utils/redirects.js";
 export default defineConfig({
 	site: "https://kosrat.dev",
 	base: "/",
-	trailingSlash: "always",
+	trailingSlash: "ignore",
 	redirects,
 	integrations: [
 		tailwind({
