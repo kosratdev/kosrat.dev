@@ -13,9 +13,20 @@ interface Props {
 	class?: string;
 	course: CollectionEntry<"courses">;
 	style?: string;
+	clickLocation?: "homepage" | "course_listing" | "sidebar" | "related_content";
+	isPinned?: boolean;
+	selectionRank?: number;
+	totalCoursesVisible?: number;
 }
 
-const { course, style } = Astro.props;
+const {
+	course,
+	style,
+	clickLocation = "course_listing",
+	isPinned = false,
+	selectionRank,
+	totalCoursesVisible,
+} = Astro.props;
 const className = Astro.props.class;
 
 let totalLessons = 0;
@@ -53,6 +64,15 @@ const coverWidth = "28%";
 	{description}
 	{style}
 	class={className}
+	data-course-slug={course.slug}
+	data-course-title={title}
+	data-course-level={level || ""}
+	data-course-category={category}
+	data-total-lessons={totalLessons}
+	data-click-location={clickLocation}
+	data-is-pinned={isPinned}
+	data-selection-rank={selectionRank || 0}
+	data-total-courses-visible={totalCoursesVisible || 0}
 >
 	<ContentMeta
 		slot="metadata"
@@ -68,7 +88,15 @@ const coverWidth = "28%";
 			slot="cover"
 			href={url} 
 			aria-label={title}
-			class="group w-full h-full rounded-xl overflow-hidden active:scale-95"
+			class="group w-full h-full rounded-xl overflow-hidden active:scale-95 course-card-link"
+			data-course-slug={course.slug}
+			data-course-title={title}
+			data-course-level={level || ""}
+			data-course-category={category}
+			data-total-lessons={totalLessons}
+			data-click-location={clickLocation}
+			data-is-pinned={isPinned}
+			data-action-type="view_course"
 		>
 			<div class="absolute pointer-events-none z-10 w-full h-full group-hover:bg-black/10 transition rounded-xl" />
 			<div class="absolute pointer-events-none z-20 bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-xl">
@@ -93,3 +121,113 @@ const coverWidth = "28%";
 		</a>
 	)}
 </BaseCard>
+
+<script>
+	// Course Card Analytics Integration
+	import { trackCourseCardClick, trackCourseSelection } from "../utils/analytics.js";
+
+	function initializeCourseCardAnalytics() {
+		// Track course card clicks (both title and cover image clicks)
+		const courseCardLinks = document.querySelectorAll('.course-card-link, .base-card-link');
+		
+		courseCardLinks.forEach((link) => {
+			link.addEventListener('click', (event) => {
+				const target = event.currentTarget as HTMLElement;
+				const courseSlug = target.getAttribute('data-course-slug');
+				const courseTitle = target.getAttribute('data-course-title');
+				const courseLevel = target.getAttribute('data-course-level');
+				const courseCategory = target.getAttribute('data-course-category');
+				const totalLessons = parseInt(target.getAttribute('data-total-lessons') || '0');
+				const clickLocation = target.getAttribute('data-click-location') as any;
+				const isPinned = target.getAttribute('data-is-pinned') === 'true';
+				const actionType = target.getAttribute('data-action-type') as any || 'view_course';
+
+				if (courseSlug && courseTitle && clickLocation) {
+					trackCourseCardClick({
+						courseSlug,
+						courseTitle,
+						courseLevel: courseLevel || undefined,
+						courseCategory: courseCategory || undefined,
+						totalLessons,
+						clickLocation,
+						isPinned,
+						actionType,
+					});
+
+					// Also track course selection if we have ranking data
+					const selectionRank = parseInt(target.getAttribute('data-selection-rank') || '0');
+					const totalCoursesVisible = parseInt(target.getAttribute('data-total-courses-visible') || '0');
+					
+					if (selectionRank > 0 && totalCoursesVisible > 0) {
+						trackCourseSelection({
+							courseSlug,
+							courseTitle,
+							courseLevel: courseLevel || undefined,
+							courseCategory: courseCategory || undefined,
+							selectionRank,
+							totalCoursesVisible,
+						});
+					}
+				}
+			});
+		});
+
+		// Track course action button clicks (Start/Continue)
+		const courseButtons = document.querySelectorAll('.course-btn');
+		
+		courseButtons.forEach((button) => {
+			button.addEventListener('click', (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				
+				const target = event.currentTarget as HTMLElement;
+				const courseCard = target.closest('[data-course-slug]') as HTMLElement;
+				
+				if (courseCard) {
+					const courseSlug = courseCard.getAttribute('data-course-slug');
+					const courseTitle = courseCard.getAttribute('data-course-title');
+					const courseLevel = courseCard.getAttribute('data-course-level');
+					const courseCategory = courseCard.getAttribute('data-course-category');
+					const totalLessons = parseInt(courseCard.getAttribute('data-total-lessons') || '0');
+					const clickLocation = courseCard.getAttribute('data-click-location') as any;
+					const isPinned = courseCard.getAttribute('data-is-pinned') === 'true';
+					
+					// Determine action type based on button text
+					const buttonText = target.querySelector('.course-btn-text')?.textContent?.toLowerCase() || '';
+					const actionType = buttonText.includes('continue') ? 'continue_course' : 'start_course';
+
+					if (courseSlug && courseTitle && clickLocation) {
+						trackCourseCardClick({
+							courseSlug,
+							courseTitle,
+							courseLevel: courseLevel || undefined,
+							courseCategory: courseCategory || undefined,
+							totalLessons,
+							clickLocation,
+							isPinned,
+							actionType,
+						});
+					}
+
+					// Navigate to course after analytics
+					setTimeout(() => {
+						const courseUrl = courseCard.querySelector('a')?.href;
+						if (courseUrl) {
+							window.location.href = courseUrl;
+						}
+					}, 100);
+				}
+			});
+		});
+	}
+
+	// Initialize analytics when DOM is ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initializeCourseCardAnalytics);
+	} else {
+		initializeCourseCardAnalytics();
+	}
+
+	// Re-initialize analytics after page transitions (for SPA-like navigation)
+	document.addEventListener('astro:page-load', initializeCourseCardAnalytics);
+</script>

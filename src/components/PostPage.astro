@@ -70,6 +70,10 @@ const interval = 50;
                     course={pinnedCourse}
                     class:list="onload-animation"
                     style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+                    clickLocation="homepage"
+                    isPinned={true}
+                    selectionRank={1}
+                    totalCoursesVisible={1}
             ></CourseCard>
             
             <!-- Posts Section Header -->

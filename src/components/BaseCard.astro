@@ -12,6 +12,7 @@ interface Props {
 	contentSlot?: string;
 	footerSlot?: string;
 	coverSlot?: string;
+	[key: `data-${string}`]: string | number | boolean | undefined; // Allow data attributes
 }
 
 const {
@@ -21,13 +22,23 @@ const {
 	coverWidth = "28%",
 	description,
 	style,
+	class: className,
+	...dataAttributes
 } = Astro.props;
-const className = Astro.props.class;
+
+// Filter out data attributes specifically
+const dataAttrs: Record<string, string | number | boolean | undefined> = {};
+for (const [key, value] of Object.entries(dataAttributes)) {
+	if (key.startsWith("data-")) {
+		dataAttrs[key] = value;
+	}
+}
 ---
 
 <div 
 	class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} 
 	style={`${style || ""}${hasCover ? ` --coverWidth: ${coverWidth};` : ""}`}
+	{...dataAttrs}
 >
 	<div
 		class:list={[
@@ -45,7 +56,9 @@ const className = Astro.props.class;
 			hover:text-[var(--primary)] dark:hover:text-[var(--primary)]
 			active:text-[var(--title-active)] dark:active:text-[var(--title-active)]
 			before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
-			before:absolute before:top-[35px] before:left-[18px] before:hidden md:before:block"
+			before:absolute before:top-[35px] before:left-[18px] before:hidden md:before:block base-card-link"
+			{...dataAttrs}
+			data-action-type="view_course"
 		>
 			{title}
 			<Icon

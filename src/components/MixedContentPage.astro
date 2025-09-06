@@ -1,4 +1,5 @@
 ---
+import { siteConfig } from "../config";
 import type { PostOrCourse } from "../utils/content/types";
 import PostOrCourseCard from "./PostOrCourseCard.astro";
 
@@ -10,13 +11,33 @@ const { items } = Astro.props;
 
 let delay = 0;
 const interval = 50;
+
+// Count total courses for analytics
+const totalCourses = items.filter((item) => item.type === "course").length;
+
+// Check if first item is a pinned course
+const isPinnedCourseEnabled =
+	siteConfig.pinnedCourse?.enable && siteConfig.pinnedCourse?.courseSlug;
+const firstItemIsPinnedCourse =
+	isPinnedCourseEnabled &&
+	items.length > 0 &&
+	items[0].type === "course" &&
+	items[0].slug === siteConfig.pinnedCourse?.courseSlug;
 ---
 <div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
-    {items.map((item) => (
-        <PostOrCourseCard
-                item={item}
-                class:list="onload-animation"
-                style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
-        ></PostOrCourseCard>
-    ))}
+    {items.map((item, index) => {
+		// Determine if this course is pinned (first item and matches pinned course slug)
+		const isPinned = index === 0 && firstItemIsPinnedCourse;
+		
+		return (
+			<PostOrCourseCard
+					item={item}
+					class:list="onload-animation"
+					style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+					isPinned={!!isPinned}
+					selectionRank={index + 1}
+					totalItemsVisible={totalCourses}
+			></PostOrCourseCard>
+		);
+	})}
 </div>

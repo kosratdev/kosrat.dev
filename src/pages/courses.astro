@@ -34,11 +34,15 @@ const interval = 50;
 >
 	<div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
 		{
-			courses.map((course) => (
+			courses.map((course, index) => (
 				<CourseCard 
 					course={course} 
 					class="onload-animation"
 					style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+					clickLocation="course_listing"
+					isPinned={false}
+					selectionRank={index + 1}
+					totalCoursesVisible={courses.length}
 				/>
 			))
 		}

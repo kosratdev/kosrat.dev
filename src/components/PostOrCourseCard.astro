@@ -9,9 +9,18 @@ interface Props {
 	item: PostOrCourse;
 	class?: string;
 	style?: string;
+	isPinned?: boolean;
+	selectionRank?: number;
+	totalItemsVisible?: number;
 }
 
-const { item, style } = Astro.props;
+const {
+	item,
+	style,
+	isPinned = false,
+	selectionRank,
+	totalItemsVisible,
+} = Astro.props;
 const className = Astro.props.class;
 ---
 
@@ -26,5 +35,9 @@ const className = Astro.props.class;
 		course={item.entry as CollectionEntry<"courses">}
 		class={className}
 		style={style || ""}
+		clickLocation="homepage"
+		isPinned={isPinned}
+		selectionRank={selectionRank}
+		totalCoursesVisible={totalItemsVisible}
 	/>
 )}

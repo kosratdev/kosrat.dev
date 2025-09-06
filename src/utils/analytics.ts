@@ -297,3 +297,57 @@ export function trackContentDiscovery(discoveryData: {
 		event_label: `${discoveryData.discoveryMethod}: ${discoveryData.contentTitle}`,
 	});
 }
+
+/**
+ * Track course card click events
+ */
+export function trackCourseCardClick(clickData: {
+	courseSlug: string;
+	courseTitle: string;
+	courseLevel?: string;
+	courseCategory?: string;
+	totalLessons: number;
+	clickLocation: "homepage" | "course_listing" | "sidebar" | "related_content";
+	isPinned: boolean;
+	actionType: "view_course" | "start_course" | "continue_course";
+}) {
+	safeGtagCall("course_card_click", {
+		course_slug: clickData.courseSlug,
+		course_title: clickData.courseTitle,
+		course_level: clickData.courseLevel || "",
+		course_category: clickData.courseCategory || "",
+		total_lessons: clickData.totalLessons,
+		click_location: clickData.clickLocation,
+		is_pinned: clickData.isPinned,
+		action_type: clickData.actionType,
+		event_category: "course_discovery",
+		event_label: `${clickData.clickLocation}: ${clickData.courseTitle} (${clickData.actionType})`,
+	});
+}
+
+/**
+ * Track course selection patterns and preferences
+ */
+export function trackCourseSelection(selectionData: {
+	courseSlug: string;
+	courseTitle: string;
+	courseLevel?: string;
+	courseCategory?: string;
+	selectionRank: number; // Position in list where course was selected
+	totalCoursesVisible: number;
+	filterCriteria?: string; // Any applied filters
+	sortOrder?: string; // How the list was sorted
+}) {
+	safeGtagCall("course_selection", {
+		course_slug: selectionData.courseSlug,
+		course_title: selectionData.courseTitle,
+		course_level: selectionData.courseLevel || "",
+		course_category: selectionData.courseCategory || "",
+		selection_rank: selectionData.selectionRank,
+		total_courses_visible: selectionData.totalCoursesVisible,
+		filter_criteria: selectionData.filterCriteria || "",
+		sort_order: selectionData.sortOrder || "default",
+		event_category: "course_discovery",
+		event_label: `Selection: ${selectionData.courseTitle} (rank ${selectionData.selectionRank}/${selectionData.totalCoursesVisible})`,
+	});
+}
