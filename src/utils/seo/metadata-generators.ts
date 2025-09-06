@@ -18,16 +18,16 @@ export class MetadataGenerator {
 		}
 
 		if (lesson && isLesson(lesson)) {
-			return `${lesson.data.title} - ${course.data.title} | ${siteConfig.title}`;
+			return `${lesson.data.title} - ${course.data.title}`;
 		}
-		return `${course.data.title} - ${course.data.level} Course | ${siteConfig.title}`;
+		return `${course.data.title} - Course`;
 	}
 
 	/**
 	 * Generate optimized page title for posts
 	 */
 	generatePostPageTitle(post: CollectionEntry<"posts">): string {
-		return `${post.data.title} | ${siteConfig.title}`;
+		return post.data.title;
 	}
 
 	/**
