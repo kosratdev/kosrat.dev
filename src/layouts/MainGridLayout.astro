@@ -22,6 +22,14 @@ interface Props {
 	lang?: string;
 	setOGTypeArticle?: boolean;
 	headings?: MarkdownHeading[];
+	// SEO enhancements
+	structuredData?: object;
+	keywords?: string[];
+	courseTitle?: string;
+	lessonTitle?: string;
+	courseLevel?: string;
+	category?: string;
+	image?: string;
 }
 
 const {
@@ -31,6 +39,13 @@ const {
 	lang,
 	setOGTypeArticle,
 	headings = [],
+	structuredData,
+	keywords,
+	courseTitle,
+	lessonTitle,
+	courseLevel,
+	category,
+	image,
 } = Astro.props;
 const hasBannerCredit =
 	siteConfig.banner.enable && siteConfig.banner.credit.enable;
@@ -41,7 +56,20 @@ const mainPanelTop = siteConfig.banner.enable
 	: "5.5rem";
 ---
 
-<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
+<Layout 
+	title={title} 
+	banner={banner} 
+	description={description} 
+	lang={lang} 
+	setOGTypeArticle={setOGTypeArticle}
+	structuredData={structuredData}
+	keywords={keywords}
+	courseTitle={courseTitle}
+	lessonTitle={lessonTitle}
+	courseLevel={courseLevel}
+	category={category}
+	image={image}
+>
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>

@@ -16,6 +16,12 @@ import {
 	getSortedSections,
 } from "@utils/content-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
+import {
+	generateCoursePageTitle,
+	generateKeywords,
+	generateLessonStructuredData,
+	generateMetaDescription,
+} from "@utils/seo-utils";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig, profileConfig, siteConfig } from "src/config";
@@ -75,6 +81,17 @@ interface Props {
 }
 
 const { course, section, lesson } = Astro.props;
+
+// Type guards to ensure we have the right content types
+if (course.data.type !== "course") {
+	throw new Error("Expected course entry");
+}
+if (section.data.type !== "section") {
+	throw new Error("Expected section entry");
+}
+if (lesson.data.type !== "lesson") {
+	throw new Error("Expected lesson entry");
+}
 
 // Helper function to remove numeric prefixes from slugs
 const cleanSlug = (slug: string): string => {
@@ -221,7 +238,24 @@ if (nextLesson) {
 
 const { Content, headings, remarkPluginFrontmatter } = await lesson.render();
 
-// Create JSON-LD for lessons (similar to posts)
+// SEO enhancements
+const baseUrl =
+	Astro.site?.toString().replace(/\/$/, "") || "https://kosrat.dev";
+const pageTitle = generateCoursePageTitle(course, lesson);
+const description = generateMetaDescription(course, lesson);
+const keywords = generateKeywords(course, lesson, [
+	"lesson",
+	"tutorial",
+	section.data.title.toLowerCase(),
+]);
+const structuredData = generateLessonStructuredData(
+	lesson,
+	course,
+	section,
+	baseUrl,
+);
+
+// Create JSON-LD for lessons (similar to posts) - keeping existing for compatibility
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "LearningResource",
@@ -244,7 +278,18 @@ const jsonLd = {
 };
 ---
 
-<MainGridLayout title={lesson.data.title} headings={headings}>
+<MainGridLayout 
+	title={pageTitle}
+	description={description}
+	keywords={keywords}
+	structuredData={structuredData}
+	courseTitle={course.data.title}
+	lessonTitle={lesson.data.title}
+	courseLevel={course.data.level}
+	category={course.data.category}
+	image={lesson.data.image}
+	headings={headings}
+>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
         <div id="lesson-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full ",

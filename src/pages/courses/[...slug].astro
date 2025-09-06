@@ -9,6 +9,12 @@ import {
 	getSortedLessons,
 	getSortedSections,
 } from "@utils/content-utils";
+import {
+	generateCoursePageTitle,
+	generateCourseStructuredData,
+	generateKeywords,
+	generateMetaDescription,
+} from "@utils/seo-utils";
 import { getCourseUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 
@@ -26,6 +32,11 @@ interface Props {
 
 const { course } = Astro.props;
 
+// Ensure this is a course type
+if (course.data.type !== "course") {
+	throw new Error("Expected course entry");
+}
+
 // Helper function to remove numeric prefixes from slugs
 const cleanSlug = (slug: string): string => {
 	return slug.replace(/^\d+-/, "");
@@ -39,9 +50,40 @@ const totalLessons = await getAllCourseLessons(course.slug);
 
 // Get course metadata
 const { Content } = await course.render();
+
+// SEO enhancements
+const baseUrl =
+	Astro.site?.toString().replace(/\/$/, "") || "https://kosrat.dev";
+const pageTitle = generateCoursePageTitle(course);
+const description = generateMetaDescription(course);
+const keywords = generateKeywords(course, undefined, [
+	"course",
+	"tutorial",
+	"programming",
+	"development",
+	"mobile development",
+	"flutter",
+	"android",
+	"ios",
+]);
+const structuredData = generateCourseStructuredData(
+	course,
+	totalLessons.length,
+	sections,
+	baseUrl,
+);
 ---
 
-<MainGridLayout title={course.data.title}>
+<MainGridLayout 
+	title={pageTitle}
+	description={description}
+	keywords={keywords}
+	structuredData={structuredData}
+	courseTitle={course.data.title}
+	courseLevel={course.data.level}
+	category={course.data.category}
+	image={course.data.image}
+>
 	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
 		<div class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">
 			<!-- Course Header -->

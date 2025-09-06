@@ -2,14 +2,35 @@
 import CourseCard from "@components/CourseCard.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedCourses } from "@utils/content-utils";
+import { generateCourseListingStructuredData } from "@utils/seo-utils";
 
 const courses = await getSortedCourses();
+
+// SEO enhancements
+const baseUrl =
+	Astro.site?.toString().replace(/\/$/, "") || "https://kosrat.dev";
+const pageTitle = "Programming Courses | Learn to Code";
+const description =
+	"Comprehensive programming courses covering various technologies and skill levels. Learn coding with hands-on tutorials and practical examples.";
+const keywords = [
+	"programming courses",
+	"coding tutorials",
+	"learn programming",
+	"software development",
+	"mobile development",
+];
+const structuredData = generateCourseListingStructuredData(courses, baseUrl);
 
 let delay = 0;
 const interval = 50;
 ---
 
-<MainGridLayout title="Courses">
+<MainGridLayout 
+	title={pageTitle}
+	description={description}
+	keywords={keywords}
+	structuredData={structuredData}
+>
 	<div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
 		{
 			courses.map((course) => (
