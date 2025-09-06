@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import path from "node:path";
+import ContentMeta from "@components/ContentMeta.astro";
 import Comment from "@components/comment/index.astro";
 import ContentNavigation, {
 	type NavigationItem,
@@ -8,7 +9,6 @@ import ContentNavigation, {
 import ImageWrapper from "@components/misc/ImageWrapper.astro";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
-import PostMetadata from "@components/PostMeta.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
@@ -340,7 +340,8 @@ const jsonLd = {
             <!-- metadata -->
             <div class="onload-animation">
                 {lesson.data.type === "lesson" && (
-                    <PostMetadata
+                    <ContentMeta
+                        contentType="post"
                         class="mb-5"
                         published={lesson.data.published}
                         updated={lesson.data.updated}

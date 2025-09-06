@@ -1,0 +1,34 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+	iconName: string;
+	href?: string;
+	ariaLabel?: string;
+	class?: string;
+}
+
+const { iconName, href, ariaLabel, class: className } = Astro.props;
+---
+
+<div class="flex items-center">
+	<div class="meta-icon">
+		<Icon name={iconName} class="text-xl" />
+	</div>
+	{href ? (
+		<a
+			href={href}
+			aria-label={ariaLabel}
+			class:list={[
+				"link-lg transition text-50 text-sm font-medium hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap",
+				className,
+			]}
+		>
+			<slot />
+		</a>
+	) : (
+		<span class:list={["text-50 text-sm font-medium", className]}>
+			<slot />
+		</span>
+	)}
+</div>

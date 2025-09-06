@@ -18,15 +18,6 @@ const className = Astro.props.class;
 {item.type === "post" ? (
 	<PostCard
 		entry={item.entry as CollectionEntry<"posts">}
-		title={item.data.title}
-		tags={item.data.tags || []}
-		category={item.data.category || null}
-		published={item.data.published}
-		updated={item.data.updated}
-		url={getPostUrlBySlug(item.slug)}
-		image={item.data.image || ""}
-		description={item.data.description || ""}
-		draft={item.data.draft || false}
 		class={className}
 		style={style || ""}
 	/>
