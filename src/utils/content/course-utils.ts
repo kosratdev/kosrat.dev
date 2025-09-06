@@ -2,6 +2,13 @@
  * Course-related content utilities
  */
 import { type CollectionEntry, getCollection } from "astro:content";
+import {
+	isCourse,
+	isLesson,
+	isSection,
+	shouldIncludeEntry,
+	validateCourseEntries,
+} from "../type-guards";
 
 /**
  * Get all courses sorted by publication date (newest first)
@@ -11,14 +18,13 @@ export async function getSortedCourses(): Promise<
 	CollectionEntry<"courses">[]
 > {
 	const allCourses = await getCollection("courses", ({ data }) => {
-		return (
-			data.type === "course" &&
-			(import.meta.env.PROD ? data.draft !== true : true)
-		);
+		return data.type === "course" && shouldIncludeEntry({ data });
 	});
 
-	return allCourses.sort((a, b) => {
-		if (a.data.type === "course" && b.data.type === "course") {
+	const validatedCourses = validateCourseEntries(allCourses);
+
+	return validatedCourses.sort((a, b) => {
+		if (isCourse(a) && isCourse(b)) {
 			return (
 				new Date(b.data.published).getTime() -
 				new Date(a.data.published).getTime()
@@ -40,8 +46,10 @@ export async function getSortedSections(
 		return data.type === "section" && id.startsWith(courseSlug);
 	});
 
-	return allSections.sort((a, b) => {
-		if (a.data.type === "section" && b.data.type === "section") {
+	const validatedSections = validateCourseEntries(allSections);
+
+	return validatedSections.sort((a, b) => {
+		if (isSection(a) && isSection(b)) {
 			return a.data.order - b.data.order;
 		}
 		return 0;
@@ -60,16 +68,14 @@ export async function getSortedLessons(
 		return (
 			data.type === "lesson" &&
 			id.startsWith(sectionSlug) &&
-			("draft" in data
-				? import.meta.env.PROD
-					? data.draft !== true
-					: true
-				: true)
+			shouldIncludeEntry({ data })
 		);
 	});
 
-	return allLessons.sort((a, b) => {
-		if (a.data.type === "lesson" && b.data.type === "lesson") {
+	const validatedLessons = validateCourseEntries(allLessons);
+
+	return validatedLessons.sort((a, b) => {
+		if (isLesson(a) && isLesson(b)) {
 			return a.data.order - b.data.order;
 		}
 		return 0;
@@ -88,16 +94,14 @@ export async function getAllCourseLessons(
 		return (
 			data.type === "lesson" &&
 			id.startsWith(courseSlug) &&
-			("draft" in data
-				? import.meta.env.PROD
-					? data.draft !== true
-					: true
-				: true)
+			shouldIncludeEntry({ data })
 		);
 	});
 
-	return allLessons.sort((a, b) => {
-		if (a.data.type === "lesson" && b.data.type === "lesson") {
+	const validatedLessons = validateCourseEntries(allLessons);
+
+	return validatedLessons.sort((a, b) => {
+		if (isLesson(a) && isLesson(b)) {
 			// First sort by section order, then by lesson order
 			const sectionA = a.id.split("/")[1];
 			const sectionB = b.id.split("/")[1];

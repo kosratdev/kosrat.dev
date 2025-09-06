@@ -6,6 +6,13 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { getAllCourseLessons } from "../utils/content/course-utils";
 import {
+	assertExists,
+	isCourse,
+	isCourseEntry,
+	isNonEmptyString,
+	isPostEntry,
+} from "../utils/type-guards";
+import {
 	getCourseUrlBySlug,
 	getDir,
 	getPostUrlBySlug,
@@ -46,57 +53,54 @@ interface CourseData {
 }
 
 // Determine content-specific data
-let url: string;
+let url = "";
 let totalLessons = 0;
 let remarkPluginFrontmatter: Record<string, unknown> | null = null;
 
-// Safe property access helpers
+// Safe property access helpers using type guards
 const getImage = (): string | undefined => {
-	if (contentType === "post") {
-		return (entry.data as PostData).image;
+	if (isPostEntry(entry)) {
+		return entry.data.image;
 	}
-	const courseData = entry.data as CourseData;
-	return courseData.type === "course" ? courseData.image : undefined;
+	if (isCourseEntry(entry) && isCourse(entry)) {
+		return entry.data.image;
+	}
+	return undefined;
 };
 
 const getDescription = (): string => {
-	if (contentType === "post") {
-		return (entry.data as PostData).description;
+	if (isPostEntry(entry)) {
+		return entry.data.description;
 	}
-	const courseData = entry.data as CourseData;
-	return courseData.type === "course" ? courseData.description : "";
+	if (isCourseEntry(entry) && isCourse(entry)) {
+		return entry.data.description;
+	}
+	return "";
 };
 
 const getPostData = (): PostData | null => {
-	return contentType === "post" ? (entry.data as PostData) : null;
+	return isPostEntry(entry) ? entry.data : null;
 };
 
 const getCourseData = (): CourseData | null => {
-	if (contentType === "course") {
-		const courseData = entry.data as CourseData;
-		return courseData.type === "course" ? courseData : null;
-	}
-	return null;
+	return isCourseEntry(entry) && isCourse(entry) ? entry.data : null;
 };
 
-if (contentType === "post") {
-	const postEntry = entry as CollectionEntry<"posts">;
-	url = getPostUrlBySlug(postEntry.slug);
-	const rendered = await postEntry.render();
+if (isPostEntry(entry)) {
+	url = getPostUrlBySlug(entry.slug);
+	const rendered = await entry.render();
 	remarkPluginFrontmatter = rendered.remarkPluginFrontmatter;
-} else {
-	const courseEntry = entry as CollectionEntry<"courses">;
-	url = getCourseUrlBySlug(courseEntry.slug);
-	const courseData = entry.data as CourseData;
-	if (courseData.type === "course") {
-		const allLessons = await getAllCourseLessons(courseEntry.slug);
+} else if (isCourseEntry(entry)) {
+	url = getCourseUrlBySlug(entry.slug);
+	if (isCourse(entry)) {
+		const allLessons = await getAllCourseLessons(entry.slug);
 		totalLessons = allLessons.length;
 	}
 }
 
 const hasCover = (() => {
 	const image = getImage();
-	return image !== undefined && image !== null && image !== "";
+	return isNonEmptyString(image);
 })();
 const coverWidth = "28%";
 ---

@@ -4,6 +4,7 @@ import path from "node:path";
 import { getAllCourseLessons } from "@utils/content/course-utils";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
+import { isCourse, isNonEmptyString, isSection } from "../utils/type-guards";
 import BaseCard from "./BaseCard.astro";
 import ContentMeta from "./ContentMeta.astro";
 import ImageWrapper from "./misc/ImageWrapper.astro";
@@ -26,22 +27,22 @@ if (course.data.type === "course") {
 const url = getCourseUrlBySlug(course.slug);
 const { title } = course.data;
 
-// Handle different course types safely
-const description =
-	course.data.type === "course"
-		? course.data.description
-		: course.data.type === "section"
-			? course.data.description || ""
-			: "";
-const category = course.data.type === "course" ? course.data.category : "";
-const level = course.data.type === "course" ? course.data.level : undefined;
-const image = course.data.type === "course" ? course.data.image : undefined;
+// Handle different course types safely using type guards
+const description = (() => {
+	if (isCourse(course)) {
+		return course.data.description;
+	}
+	if (isSection(course)) {
+		return course.data.description || "";
+	}
+	return "";
+})();
 
-const hasCover =
-	course.data.type === "course" &&
-	image !== undefined &&
-	image !== null &&
-	image !== "";
+const category = isCourse(course) ? course.data.category : "";
+const level = isCourse(course) ? course.data.level : undefined;
+const image = isCourse(course) ? course.data.image : undefined;
+
+const hasCover = isCourse(course) && isNonEmptyString(image);
 const coverWidth = "28%";
 ---
 

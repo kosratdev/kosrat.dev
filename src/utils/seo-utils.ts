@@ -1,30 +1,6 @@
 import type { CollectionEntry } from "astro:content";
 import { profileConfig, siteConfig } from "../config";
-
-// Type guards for course content types
-function isCourse(
-	entry: CollectionEntry<"courses">,
-): entry is CollectionEntry<"courses"> & {
-	data: { type: "course" };
-} {
-	return entry.data.type === "course";
-}
-
-function isSection(
-	entry: CollectionEntry<"courses">,
-): entry is CollectionEntry<"courses"> & {
-	data: { type: "section" };
-} {
-	return entry.data.type === "section";
-}
-
-function isLesson(
-	entry: CollectionEntry<"courses">,
-): entry is CollectionEntry<"courses"> & {
-	data: { type: "lesson" };
-} {
-	return entry.data.type === "lesson";
-}
+import { isCourse, isLesson, isSection } from "./type-guards";
 
 /**
  * Generate structured data for Course pages

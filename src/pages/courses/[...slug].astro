@@ -18,6 +18,7 @@ import {
 	generateMetaDescription,
 } from "@utils/seo-utils";
 import { cleanSlug } from "@utils/slug-utils";
+import { assertIsCourse } from "@utils/type-guards";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 
@@ -35,10 +36,8 @@ interface Props {
 
 const { course } = Astro.props;
 
-// Ensure this is a course type
-if (course.data.type !== "course") {
-	throw new Error("Expected course entry");
-}
+// Ensure this is a course type using type assertion
+assertIsCourse(course, "course page");
 
 // Get all sections for this course
 const sections = await getSortedSections(course.slug);
