@@ -27,16 +27,16 @@ export function getLessonUrlBySlug(lessonSlug: string): string {
 	};
 
 	// lessonSlug format: "course-slug/section-slug/lesson-slug"
-	const parts = lessonSlug.split('/');
+	const parts = lessonSlug.split("/");
 	if (parts.length >= 3) {
 		const courseSlug = parts[0];
 		const sectionSlug = parts[1];
 		const lessonPart = parts[2];
-		
+
 		// Clean the section and lesson slugs to remove numeric prefixes
 		const sectionId = cleanSlug(sectionSlug);
 		const lessonId = cleanSlug(lessonPart);
-		
+
 		return url(`/courses/${courseSlug}/${sectionId}/${lessonId}/`);
 	}
 	// Fallback

@@ -53,7 +53,9 @@ export type PostOrCourse = {
 	};
 };
 
-export async function getSortedPostsWithPinnedCourse(): Promise<PostOrCourse[]> {
+export async function getSortedPostsWithPinnedCourse(): Promise<
+	PostOrCourse[]
+> {
 	const posts = await getRawSortedPosts();
 	const result: PostOrCourse[] = [];
 
@@ -61,15 +63,20 @@ export async function getSortedPostsWithPinnedCourse(): Promise<PostOrCourse[]> 
 	if (siteConfig.pinnedCourse?.enable && siteConfig.pinnedCourse?.courseSlug) {
 		try {
 			const courses = await getCollection("courses", ({ data }) => {
-				return data.type === "course" && (import.meta.env.PROD ? data.draft !== true : true);
+				return (
+					data.type === "course" &&
+					(import.meta.env.PROD ? data.draft !== true : true)
+				);
 			});
-			
-			const pinnedCourse = courses.find(course => course.slug === siteConfig.pinnedCourse?.courseSlug);
-			
+
+			const pinnedCourse = courses.find(
+				(course) => course.slug === siteConfig.pinnedCourse?.courseSlug,
+			);
+
 			if (pinnedCourse && pinnedCourse.data.type === "course") {
 				// Get total lessons for the course
 				const allLessons = await getAllCourseLessons(pinnedCourse.slug);
-				
+
 				result.push({
 					type: "course",
 					entry: pinnedCourse,
@@ -93,7 +100,7 @@ export async function getSortedPostsWithPinnedCourse(): Promise<PostOrCourse[]> 
 	}
 
 	// Add all posts
-	posts.forEach(post => {
+	posts.forEach((post) => {
 		result.push({
 			type: "post",
 			entry: post,
