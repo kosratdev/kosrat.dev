@@ -13,6 +13,83 @@ let isSearching = false;
 let pagefindLoaded = false;
 let initialized = false;
 
+// Analytics tracking variables
+let currentQuery = "";
+let analyticsLoaded = false;
+
+// Analytics helper functions
+const callTrackSearchQuery = (data: {
+	query: string;
+	resultCount: number;
+	searchLocation: "desktop" | "mobile";
+}) => {
+	if (analyticsLoaded && trackSearchQuery) {
+		trackSearchQuery(data);
+	}
+};
+
+const callTrackSearchResultClick = (data: {
+	query: string;
+	resultUrl: string;
+	resultTitle: string;
+	resultPosition: number;
+	contentType: string;
+	searchLocation: "desktop" | "mobile";
+}) => {
+	if (analyticsLoaded && trackSearchResultClick) {
+		trackSearchResultClick(data);
+	}
+};
+
+// Handle search result click
+const handleResultClick = (item: SearchResult, index: number) => {
+	const contentType = getContentType(item.url);
+
+	callTrackSearchResultClick({
+		query: currentQuery,
+		resultUrl: item.url,
+		resultTitle: item.meta.title,
+		resultPosition: index + 1,
+		contentType: contentType.type,
+		searchLocation: keywordDesktop ? "desktop" : "mobile",
+	});
+
+	// Close search panel after click (mobile)
+	if (window.innerWidth < 1024) {
+		togglePanel();
+	}
+};
+
+// Specific analytics function types
+let trackSearchQuery:
+	| ((searchData: {
+			query: string;
+			resultCount: number;
+			searchLocation: "desktop" | "mobile";
+	  }) => void)
+	| null = null;
+
+let trackSearchResultClick:
+	| ((clickData: {
+			query: string;
+			resultUrl: string;
+			resultTitle: string;
+			resultPosition: number;
+			contentType: string;
+			searchLocation: "desktop" | "mobile";
+	  }) => void)
+	| null = null;
+
+let trackContentDiscovery:
+	| ((discoveryData: {
+			discoveryMethod: "search" | "navigation" | "direct" | "course_link";
+			contentType: "post" | "course" | "lesson";
+			contentTitle: string;
+			sourceQuery?: string;
+			sourceUrl?: string;
+	  }) => void)
+	| null = null;
+
 const fakeResult: SearchResult[] = [
 	{
 		url: url("/"),
@@ -94,6 +171,7 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	}
 
 	isSearching = true;
+	currentQuery = keyword;
 
 	try {
 		let searchResults: SearchResult[] = [];
@@ -112,6 +190,13 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 
 		result = searchResults;
 		setPanelVisibility(result.length > 0, isDesktop);
+
+		// Track search query analytics
+		callTrackSearchQuery({
+			query: keyword,
+			resultCount: searchResults.length,
+			searchLocation: isDesktop ? "desktop" : "mobile",
+		});
 	} catch (error) {
 		console.error("Search error:", error);
 		result = [];
@@ -122,6 +207,21 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 };
 
 onMount(() => {
+	// Initialize analytics functions
+	const initAnalytics = async () => {
+		try {
+			const analytics = await import("../utils/analytics.js");
+			trackSearchQuery = analytics.trackSearchQuery;
+			trackSearchResultClick = analytics.trackSearchResultClick;
+			trackContentDiscovery = analytics.trackContentDiscovery;
+			analyticsLoaded = true;
+		} catch (error) {
+			console.warn("Analytics not loaded:", error);
+		}
+	};
+
+	initAnalytics();
+
 	const initializeSearch = () => {
 		initialized = true;
 		pagefindLoaded =
@@ -208,9 +308,10 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
     </div>
 
     <!-- search results -->
-    {#each result as item}
+    {#each result as item, index}
         {@const contentType = getContentType(item.url)}
         <a href={item.url}
+           on:click={() => handleResultClick(item, index)}
            class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
        rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
             <div class="transition text-90 flex items-center gap-2 font-bold group-hover:text-[var(--primary)]">

@@ -1,9 +1,9 @@
 /**
  * Google Analytics utility functions for course and lesson tracking
- * 
+ *
  * This module provides comprehensive tracking for educational content interactions:
  * - Course views and completion
- * - Lesson starts and navigation 
+ * - Lesson starts and navigation
  * - User engagement patterns
  * - Progress management
  */
@@ -24,7 +24,7 @@ const analyticsDebounce = new Map<string, number>();
 function shouldTrackEvent(eventKey: string, debounceMs = 1000): boolean {
 	const now = Date.now();
 	const lastTracked = analyticsDebounce.get(eventKey) || 0;
-	
+
 	if (now - lastTracked > debounceMs) {
 		analyticsDebounce.set(eventKey, now);
 		return true;
@@ -33,14 +33,18 @@ function shouldTrackEvent(eventKey: string, debounceMs = 1000): boolean {
 }
 
 // Utility function to safely call gtag with error handling
-function safeGtagCall(eventName: string, eventData: Record<string, unknown>, debounceKey?: string): void {
+function safeGtagCall(
+	eventName: string,
+	eventData: Record<string, unknown>,
+	debounceKey?: string,
+): void {
 	try {
-		if (typeof window === "undefined" || !window.gtag) {
+		// Apply debouncing if key provided
+		if (debounceKey && !shouldTrackEvent(debounceKey, 1000)) {
 			return;
 		}
 
-		// Apply debouncing if key provided
-		if (debounceKey && !shouldTrackEvent(debounceKey, 1000)) {
+		if (typeof window === "undefined" || !window.gtag) {
 			return;
 		}
 
@@ -60,14 +64,18 @@ export function trackCourseView(courseData: {
 	totalLessons?: number;
 }) {
 	const eventKey = `course_view_${courseData.courseName}`;
-	safeGtagCall("course_view", {
-		course_name: courseData.courseName,
-		course_level: courseData.level,
-		course_category: courseData.category,
-		total_lessons: courseData.totalLessons || 0,
-		event_category: "education",
-		event_label: `${courseData.courseName} (${courseData.level})`,
-	}, eventKey);
+	safeGtagCall(
+		"course_view",
+		{
+			course_name: courseData.courseName,
+			course_level: courseData.level,
+			course_category: courseData.category,
+			total_lessons: courseData.totalLessons || 0,
+			event_category: "education",
+			event_label: `${courseData.courseName} (${courseData.level})`,
+		},
+		eventKey,
+	);
 }
 
 /**
@@ -82,16 +90,20 @@ export function trackLessonStart(lessonData: {
 	category: string;
 }) {
 	const eventKey = `lesson_start_${lessonData.courseName}_${lessonData.lessonName}`;
-	safeGtagCall("lesson_start", {
-		course_name: lessonData.courseName,
-		lesson_name: lessonData.lessonName,
-		section_name: lessonData.sectionName,
-		lesson_number: lessonData.lessonNumber,
-		course_level: lessonData.courseLevel,
-		course_category: lessonData.category,
-		event_category: "education",
-		event_label: `${lessonData.courseName} - ${lessonData.lessonName}`,
-	}, eventKey);
+	safeGtagCall(
+		"lesson_start",
+		{
+			course_name: lessonData.courseName,
+			lesson_name: lessonData.lessonName,
+			section_name: lessonData.sectionName,
+			lesson_number: lessonData.lessonNumber,
+			course_level: lessonData.courseLevel,
+			course_category: lessonData.category,
+			event_category: "education",
+			event_label: `${lessonData.courseName} - ${lessonData.lessonName}`,
+		},
+		eventKey,
+	);
 }
 
 /**
@@ -108,18 +120,22 @@ export function trackLessonCompletion(completionData: {
 	completionPercentage?: number;
 }) {
 	const eventKey = `lesson_completion_${completionData.courseName}_${completionData.lessonName}_${completionData.actionType}`;
-	safeGtagCall("lesson_completion", {
-		course_name: completionData.courseName,
-		lesson_name: completionData.lessonName,
-		section_name: completionData.sectionName,
-		lesson_number: completionData.lessonNumber,
-		course_level: completionData.courseLevel,
-		course_category: completionData.category,
-		action_type: completionData.actionType,
-		completion_percentage: completionData.completionPercentage || 0,
-		event_category: "education",
-		event_label: `${completionData.courseName} - ${completionData.lessonName} (${completionData.actionType})`,
-	}, eventKey);
+	safeGtagCall(
+		"lesson_completion",
+		{
+			course_name: completionData.courseName,
+			lesson_name: completionData.lessonName,
+			section_name: completionData.sectionName,
+			lesson_number: completionData.lessonNumber,
+			course_level: completionData.courseLevel,
+			course_category: completionData.category,
+			action_type: completionData.actionType,
+			completion_percentage: completionData.completionPercentage || 0,
+			event_category: "education",
+			event_label: `${completionData.courseName} - ${completionData.lessonName} (${completionData.actionType})`,
+		},
+		eventKey,
+	);
 }
 
 /**
@@ -213,4 +229,71 @@ export function trackProgressReset(courseData: {
 			event_label: `${courseData.courseName} - Progress Reset`,
 		});
 	}
+}
+
+/**
+ * Track search query events
+ */
+export function trackSearchQuery(searchData: {
+	query: string;
+	resultCount: number;
+	searchLocation: "desktop" | "mobile";
+}) {
+	const eventKey = `search_query_${searchData.query}_${searchData.searchLocation}`;
+	safeGtagCall(
+		"search",
+		{
+			search_term: searchData.query,
+			result_count: searchData.resultCount,
+			search_location: searchData.searchLocation,
+			event_category: "search",
+			event_label: `Search: ${searchData.query} (${searchData.resultCount} results)`,
+		},
+		eventKey,
+	);
+}
+
+/**
+ * Track search result clicks
+ */
+export function trackSearchResultClick(clickData: {
+	query: string;
+	resultUrl: string;
+	resultTitle: string;
+	resultPosition: number;
+	contentType: string;
+	searchLocation: "desktop" | "mobile";
+}) {
+	// Don't debounce result clicks as each click is a distinct user action
+	safeGtagCall("search_result_click", {
+		search_term: clickData.query,
+		result_url: clickData.resultUrl,
+		result_title: clickData.resultTitle,
+		result_position: clickData.resultPosition,
+		content_type: clickData.contentType,
+		search_location: clickData.searchLocation,
+		event_category: "search",
+		event_label: `Search Click: ${clickData.query} -> ${clickData.resultTitle}`,
+	});
+}
+
+/**
+ * Track content discovery patterns
+ */
+export function trackContentDiscovery(discoveryData: {
+	discoveryMethod: "search" | "navigation" | "direct" | "course_link";
+	contentType: "post" | "course" | "lesson";
+	contentTitle: string;
+	sourceQuery?: string;
+	sourceUrl?: string;
+}) {
+	safeGtagCall("content_discovery", {
+		discovery_method: discoveryData.discoveryMethod,
+		content_type: discoveryData.contentType,
+		content_title: discoveryData.contentTitle,
+		source_query: discoveryData.sourceQuery || "",
+		source_url: discoveryData.sourceUrl || "",
+		event_category: "content_discovery",
+		event_label: `${discoveryData.discoveryMethod}: ${discoveryData.contentTitle}`,
+	});
 }
