@@ -13,10 +13,10 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import {
-	getAllCourseLessons,
+	getCourseDataBundle,
+	getLessonNavigation,
 	getSortedCourses,
 	getSortedLessons,
-	getSortedSections,
 } from "@utils/content/course-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import {
@@ -41,7 +41,10 @@ export async function getStaticPaths() {
 	}> = [];
 
 	for (const course of courses) {
-		const sections = await getSortedSections(course.slug);
+		const courseData = await getCourseDataBundle(course.slug);
+		if (!courseData) continue;
+
+		const { sections } = courseData;
 
 		for (const section of sections) {
 			const lessons = await getSortedLessons(section.slug);
@@ -91,38 +94,26 @@ if (lesson.data.type !== "lesson") {
 	throw new Error("Expected lesson entry");
 }
 
-// Get all sections and lessons for navigation
-const allSections = await getSortedSections(course.slug);
-const allLessons = await getAllCourseLessons(course.slug);
-
-// Calculate continuous lesson number
-let continuousLessonNumber = 1;
-const currentSectionSlug = section.slug;
-
-// Count lessons in all sections before the current section
-for (const sec of allSections) {
-	if (sec.slug === currentSectionSlug) {
-		// Found current section, now add position within this section
-		const currentSectionLessons = await getSortedLessons(sec.slug);
-		const lessonIndexInSection = currentSectionLessons.findIndex(
-			(l) => l.slug === lesson.slug,
-		);
-		continuousLessonNumber += lessonIndexInSection;
-		break;
-	}
-	// Add all lessons from previous sections
-	const sectionLessons = await getSortedLessons(sec.slug);
-	continuousLessonNumber += sectionLessons.length;
+// Get all course data and navigation info efficiently
+const courseData = await getCourseDataBundle(course.slug);
+if (!courseData) {
+	throw new Error("Course data not found");
 }
 
-// Find current lesson index for navigation
-const currentLessonIndex = allLessons.findIndex((l) => l.slug === lesson.slug);
-const previousLesson =
-	currentLessonIndex > 0 ? allLessons[currentLessonIndex - 1] : null;
-const nextLesson =
-	currentLessonIndex < allLessons.length - 1
-		? allLessons[currentLessonIndex + 1]
-		: null;
+const { sections: allSections, lessons: allLessons } = courseData;
+
+// Get lesson navigation data
+const lessonNav = await getLessonNavigation(course.slug, lesson.slug);
+if (!lessonNav) {
+	throw new Error("Lesson navigation data not found");
+}
+
+// Calculate continuous lesson number using optimized navigation data
+const continuousLessonNumber = lessonNav.currentIndex + 1;
+
+// Get previous and next lessons from optimized navigation
+const previousLesson = lessonNav.previousLesson;
+const nextLesson = lessonNav.nextLesson;
 
 // Find current section index
 const currentSectionIndex = allSections.findIndex(

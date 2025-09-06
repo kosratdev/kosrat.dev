@@ -1,10 +1,15 @@
 /**
- * Course-related content utilities
+ * Content caching and optimization utilities
  * Provides efficient data fetching with caching to reduce duplicate API calls
  */
 import { type CollectionEntry, getCollection } from "astro:content";
-import { sortingUtils as optimizedSorting } from "../optimized-sorting";
-import { shouldIncludeEntry, validateCourseEntries } from "../type-guards";
+import {
+	isCourse,
+	isLesson,
+	isSection,
+	shouldIncludeEntry,
+	validateCourseEntries,
+} from "../type-guards";
 
 // Cache interface
 interface ContentCache {
@@ -70,6 +75,68 @@ async function getAllCourses(): Promise<CollectionEntry<"courses">[]> {
 /**
  * Optimized sorting utilities
  */
+const sortingUtils = {
+	/**
+	 * Sort courses by publication date (newest first)
+	 */
+	coursesByDate: (
+		a: CollectionEntry<"courses">,
+		b: CollectionEntry<"courses">,
+	) => {
+		if (isCourse(a) && isCourse(b)) {
+			return (
+				new Date(b.data.published).getTime() -
+				new Date(a.data.published).getTime()
+			);
+		}
+		return 0;
+	},
+
+	/**
+	 * Sort sections by order
+	 */
+	sectionsByOrder: (
+		a: CollectionEntry<"courses">,
+		b: CollectionEntry<"courses">,
+	) => {
+		if (isSection(a) && isSection(b)) {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	},
+
+	/**
+	 * Sort lessons by order
+	 */
+	lessonsByOrder: (
+		a: CollectionEntry<"courses">,
+		b: CollectionEntry<"courses">,
+	) => {
+		if (isLesson(a) && isLesson(b)) {
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	},
+
+	/**
+	 * Sort lessons by section and then by order
+	 */
+	lessonsBySectionAndOrder: (
+		a: CollectionEntry<"courses">,
+		b: CollectionEntry<"courses">,
+	) => {
+		if (isLesson(a) && isLesson(b)) {
+			// First sort by section order, then by lesson order
+			const sectionA = a.id.split("/")[1];
+			const sectionB = b.id.split("/")[1];
+			if (sectionA !== sectionB) {
+				return sectionA.localeCompare(sectionB);
+			}
+			return a.data.order - b.data.order;
+		}
+		return 0;
+	},
+};
 
 /**
  * Get all courses sorted by publication date (newest first) with caching
@@ -79,7 +146,7 @@ export async function getSortedCourses(): Promise<
 	CollectionEntry<"courses">[]
 > {
 	const courses = await getAllCourses();
-	return optimizedSorting.sortCourses(courses);
+	return [...courses].sort(sortingUtils.coursesByDate);
 }
 
 /**
@@ -103,10 +170,7 @@ export async function getSortedSections(
 	});
 
 	const validatedSections = validateCourseEntries(allSections);
-	const sortedSections = optimizedSorting.sortSections(
-		validatedSections,
-		courseSlug,
-	);
+	const sortedSections = validatedSections.sort(sortingUtils.sectionsByOrder);
 
 	// Cache the result
 	contentCache.courseSections.set(courseSlug, sortedSections);
@@ -139,10 +203,7 @@ export async function getSortedLessons(
 	});
 
 	const validatedLessons = validateCourseEntries(allLessons);
-	const sortedLessons = optimizedSorting.sortLessons(
-		validatedLessons,
-		sectionSlug,
-	);
+	const sortedLessons = validatedLessons.sort(sortingUtils.lessonsByOrder);
 
 	// Cache the result
 	contentCache.sectionLessons.set(sectionSlug, sortedLessons);
@@ -175,9 +236,8 @@ export async function getAllCourseLessons(
 	});
 
 	const validatedLessons = validateCourseEntries(allLessons);
-	const sortedLessons = optimizedSorting.sortAllCourseLessons(
-		validatedLessons,
-		courseSlug,
+	const sortedLessons = validatedLessons.sort(
+		sortingUtils.lessonsBySectionAndOrder,
 	);
 
 	// Cache the result

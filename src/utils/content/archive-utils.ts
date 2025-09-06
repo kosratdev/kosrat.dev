@@ -3,7 +3,7 @@
  */
 import { siteConfig } from "../../config";
 import {
-	getAllCourseLessons,
+	getCourseLessonCount,
 	getSortedCourses,
 	getSortedLessons,
 	getSortedSections,
@@ -32,7 +32,7 @@ export async function getSortedPostsWithPinnedCourse(): Promise<
 
 			if (pinnedCourse && pinnedCourse.data.type === "course") {
 				// Get total lessons for the course
-				const allLessons = await getAllCourseLessons(pinnedCourse.slug);
+				const totalLessons = await getCourseLessonCount(pinnedCourse.slug);
 
 				result.push({
 					type: "course",
@@ -47,7 +47,7 @@ export async function getSortedPostsWithPinnedCourse(): Promise<
 						image: pinnedCourse.data.image,
 						draft: pinnedCourse.data.draft,
 						level: pinnedCourse.data.level,
-						totalLessons: allLessons.length,
+						totalLessons: totalLessons,
 					},
 				});
 			}

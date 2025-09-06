@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import path from "node:path";
-import { getAllCourseLessons } from "@utils/content/course-utils";
+import { getCourseLessonCount } from "@utils/content/course-utils";
 import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { isCourse, isNonEmptyString, isSection } from "../utils/type-guards";
@@ -20,8 +20,7 @@ const className = Astro.props.class;
 
 let totalLessons = 0;
 if (course.data.type === "course") {
-	const allLessons = await getAllCourseLessons(course.slug);
-	totalLessons = allLessons.length;
+	totalLessons = await getCourseLessonCount(course.slug);
 }
 
 const url = getCourseUrlBySlug(course.slug);

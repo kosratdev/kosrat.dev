@@ -6,10 +6,9 @@ import ImageWrapper from "@components/misc/ImageWrapper.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import {
-	getAllCourseLessons,
+	getCourseDataBundle,
 	getSortedCourses,
 	getSortedLessons,
-	getSortedSections,
 } from "@utils/content/course-utils";
 import {
 	keywordGenerator,
@@ -38,11 +37,17 @@ const { course } = Astro.props;
 // Ensure this is a course type using type assertion
 assertIsCourse(course, "course page");
 
-// Get all sections for this course
-const sections = await getSortedSections(course.slug);
+// Get all course data efficiently in one call
+const courseData = await getCourseDataBundle(course.slug);
 
-// Get total lessons count
-const totalLessons = await getAllCourseLessons(course.slug);
+if (!courseData) {
+	return new Response(null, {
+		status: 404,
+		statusText: "Course not found",
+	});
+}
+
+const { sections, lessons, totalLessons, totalSections } = courseData;
 
 // Get course metadata
 const { Content } = await course.render();
@@ -64,7 +69,7 @@ const keywords = keywordGenerator.generateKeywords(course, undefined, [
 ]);
 const structuredData = structuredDataFactory.generateCourseStructuredData(
 	course,
-	totalLessons.length,
+	totalLessons,
 	sections,
 );
 ---
@@ -104,7 +109,7 @@ const structuredData = structuredDataFactory.generateCourseStructuredData(
 						class="mb-5"
 						level={course.data.level}
 						category={course.data.category}
-						totalLessons={totalLessons.length}
+						totalLessons={totalLessons}
 					/>
 				)}
 				{!course.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}

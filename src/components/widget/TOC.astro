@@ -17,9 +17,7 @@ for (const heading of headings) {
 
 const className = Astro.props.class;
 const isPostsRoute = Astro.url.pathname.startsWith(url("/posts/"));
-const isCourseLessonRoute = Astro.url.pathname.match(
-	/^\/courses\/[^/]+\/[^/]+\/[^/]+\/?$/,
-);
+const isCourseLessonRoute = Astro.url.pathname.startsWith(url("/courses/"));
 
 const removeTailingHash = (text: string) => {
 	let lastIndexOfHash = text.lastIndexOf("#");

@@ -10,12 +10,16 @@ export {
 } from "./archive-utils";
 // Course utilities
 export {
+	clearContentCache,
 	getAllCourseLessons,
 	getCourseBySlug,
+	getCourseDataBundle,
 	getCourseLessonCount,
+	getLessonNavigation,
 	getSortedCourses,
 	getSortedLessons,
 	getSortedSections,
+	preloadCourseData,
 } from "./course-utils";
 // Post utilities
 export {

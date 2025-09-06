@@ -4,7 +4,7 @@ import path from "node:path";
 import { Icon } from "astro-icon/components";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
-import { getAllCourseLessons } from "../utils/content/course-utils";
+import { getCourseLessonCount } from "../utils/content/course-utils";
 import {
 	assertExists,
 	isCourse,
@@ -93,8 +93,7 @@ if (isPostEntry(entry)) {
 } else if (isCourseEntry(entry)) {
 	url = getCourseUrlBySlug(entry.slug);
 	if (isCourse(entry)) {
-		const allLessons = await getAllCourseLessons(entry.slug);
-		totalLessons = allLessons.length;
+		totalLessons = await getCourseLessonCount(entry.slug);
 	}
 }
 
