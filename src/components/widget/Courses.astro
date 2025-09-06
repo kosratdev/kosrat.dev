@@ -4,7 +4,7 @@ import ButtonLink from "@components/control/ButtonLink.astro";
 import WidgetLayout from "@components/widget/WidgetLayout.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { getSortedCourses } from "@utils/content-utils";
+import { getSortedCourses } from "@utils/content/course-utils";
 import { getCourseUrlBySlug } from "@utils/url-utils";
 
 const courses = await getSortedCourses();

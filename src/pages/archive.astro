@@ -3,7 +3,7 @@ import ArchivePanel from "@components/ArchivePanel.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { getCombinedArchiveContent } from "../utils/content-utils";
+import { getCombinedArchiveContent } from "../utils/content/archive-utils";
 
 const sortedContentList = await getCombinedArchiveContent();
 ---
