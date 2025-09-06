@@ -1,0 +1,39 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { PostOrCourse } from "../utils/content-utils";
+import { getPostUrlBySlug } from "../utils/url-utils";
+import CourseCard from "./CourseCard.astro";
+import PostCard from "./PostCard.astro";
+
+interface Props {
+	item: PostOrCourse;
+	class?: string;
+	style?: string;
+}
+
+const { item, style } = Astro.props;
+const className = Astro.props.class;
+---
+
+{item.type === "post" ? (
+	<PostCard
+		entry={item.entry as CollectionEntry<"posts">}
+		title={item.data.title}
+		tags={item.data.tags || []}
+		category={item.data.category || null}
+		published={item.data.published}
+		updated={item.data.updated}
+		url={getPostUrlBySlug(item.slug)}
+		image={item.data.image || ""}
+		description={item.data.description || ""}
+		draft={item.data.draft || false}
+		class={className}
+		style={style || ""}
+	/>
+) : (
+	<CourseCard
+		course={item.entry as CollectionEntry<"courses">}
+		class={className}
+		style={style || ""}
+	/>
+)}

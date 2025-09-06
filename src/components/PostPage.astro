@@ -1,14 +1,97 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { getPostUrlBySlug } from "@utils/url-utils";
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "../config";
+import { getSortedPostsWithPinnedCourse } from "../utils/content-utils";
+import CourseCard from "./CourseCard.astro";
 import PostCard from "./PostCard.astro";
 
-const { page } = Astro.props;
+interface Props {
+	page: {
+		data: CollectionEntry<"posts">[];
+		currentPage: number;
+		lastPage: number;
+		url: {
+			current: string;
+			prev?: string;
+			next?: string;
+		};
+		start: number;
+		end: number;
+		size: number;
+		total: number;
+	};
+	showPinnedCourse?: boolean;
+}
+
+const { page, showPinnedCourse = false } = Astro.props;
+
+let pinnedCourse: CollectionEntry<"courses"> | null = null;
+
+// Get pinned course for first page if enabled
+if (
+	showPinnedCourse &&
+	siteConfig.pinnedCourse?.enable &&
+	siteConfig.pinnedCourse?.courseSlug
+) {
+	try {
+		const mixedContent = await getSortedPostsWithPinnedCourse();
+		const pinnedItem = mixedContent.find((item) => item.type === "course");
+		if (pinnedItem) {
+			pinnedCourse = pinnedItem.entry as CollectionEntry<"courses">;
+		}
+	} catch (error) {
+		console.warn("Failed to load pinned course:", error);
+	}
+}
 
 let delay = 0;
 const interval = 50;
 ---
 <div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
+    {pinnedCourse && (
+        <>
+            <!-- Pinned Course Section Header -->
+            <div class="flex items-center justify-between mb-0 px-1 onload-animation" style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}>
+                <h2 class="text-lg md:text-xl font-bold text-black/90 dark:text-white/90 flex items-center gap-2">
+                    <Icon name="material-symbols:push-pin" class="text-[var(--primary)] text-base md:text-lg" />
+                    Pinned Course
+                </h2>
+                <a href="/courses/" 
+                   class="text-sm md:text-base font-medium text-[var(--primary)] hover:text-[var(--primary)]/80 
+                          hover:underline transition-all duration-200 flex items-center gap-1
+                          px-3 py-1.5 rounded-lg hover:bg-[var(--primary)]/10">
+                    See all courses
+                    <Icon name="material-symbols:arrow-forward-rounded" class="text-sm md:text-base" />
+                </a>
+            </div>
+            <CourseCard
+                    course={pinnedCourse}
+                    class:list="onload-animation"
+                    style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+            ></CourseCard>
+            
+            <!-- Posts Section Header -->
+            <div class="flex items-center justify-between mt-4 mb-0 px-1 onload-animation" style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}>
+                <h2 class="text-lg md:text-xl font-bold text-black/90 dark:text-white/90 flex items-center gap-2">
+                    <Icon name="material-symbols:article-outline" class="text-[var(--primary)] text-base md:text-lg" />
+                    Latest Posts
+                </h2>
+            </div>
+        </>
+    )}
+    
+    {!pinnedCourse && showPinnedCourse && (
+        <!-- Posts Section Header (when no pinned course) -->
+        <div class="flex items-center justify-between mb-0 px-1 onload-animation" style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}>
+            <h2 class="text-lg md:text-xl font-bold text-black/90 dark:text-white/90 flex items-center gap-2">
+                <Icon name="material-symbols:article-outline" class="text-[var(--primary)] text-base md:text-lg" />
+                Latest Posts
+            </h2>
+        </div>
+    )}
+    
     {page.data.map((entry: CollectionEntry<"posts">) => (
         <PostCard
                 entry={entry}

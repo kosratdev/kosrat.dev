@@ -2,8 +2,9 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils.ts";
+import { siteConfig } from "../config";
 
-// // Retrieve posts and sort them by publication date
+// Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
 	const allBlogPosts = await getCollection("posts", ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
@@ -31,6 +32,88 @@ export async function getSortedPosts() {
 
 	return sorted;
 }
+
+// Mixed content type for home page with pinned course
+export type PostOrCourse = {
+	type: "post" | "course";
+	entry: CollectionEntry<"posts"> | CollectionEntry<"courses">;
+	slug: string;
+	data: {
+		title: string;
+		published: Date;
+		updated?: Date;
+		tags?: string[];
+		category?: string;
+		description?: string;
+		image?: string;
+		draft?: boolean;
+		// Course specific fields
+		level?: string;
+		totalLessons?: number;
+	};
+};
+
+export async function getSortedPostsWithPinnedCourse(): Promise<PostOrCourse[]> {
+	const posts = await getRawSortedPosts();
+	const result: PostOrCourse[] = [];
+
+	// Add pinned course at the top if enabled and configured
+	if (siteConfig.pinnedCourse?.enable && siteConfig.pinnedCourse?.courseSlug) {
+		try {
+			const courses = await getCollection("courses", ({ data }) => {
+				return data.type === "course" && (import.meta.env.PROD ? data.draft !== true : true);
+			});
+			
+			const pinnedCourse = courses.find(course => course.slug === siteConfig.pinnedCourse?.courseSlug);
+			
+			if (pinnedCourse && pinnedCourse.data.type === "course") {
+				// Get total lessons for the course
+				const allLessons = await getAllCourseLessons(pinnedCourse.slug);
+				
+				result.push({
+					type: "course",
+					entry: pinnedCourse,
+					slug: pinnedCourse.slug,
+					data: {
+						title: pinnedCourse.data.title,
+						published: pinnedCourse.data.published,
+						updated: pinnedCourse.data.updated,
+						category: pinnedCourse.data.category,
+						description: pinnedCourse.data.description,
+						image: pinnedCourse.data.image,
+						draft: pinnedCourse.data.draft,
+						level: pinnedCourse.data.level,
+						totalLessons: allLessons.length,
+					},
+				});
+			}
+		} catch (error) {
+			console.warn("Failed to load pinned course:", error);
+		}
+	}
+
+	// Add all posts
+	posts.forEach(post => {
+		result.push({
+			type: "post",
+			entry: post,
+			slug: post.slug,
+			data: {
+				title: post.data.title,
+				published: post.data.published,
+				updated: post.data.updated,
+				tags: post.data.tags,
+				category: post.data.category || undefined,
+				description: post.data.description,
+				image: post.data.image,
+				draft: post.data.draft,
+			},
+		});
+	});
+
+	return result;
+}
+
 export type PostForList = {
 	slug: string;
 	data: CollectionEntry<"posts">["data"];

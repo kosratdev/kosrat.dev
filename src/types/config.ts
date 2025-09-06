@@ -42,6 +42,11 @@ export type SiteConfig = {
 		target?: string;
 		rel?: string;
 	};
+
+	pinnedCourse?: {
+		enable: boolean;
+		courseSlug?: string;
+	};
 };
 
 export type Favicon = {

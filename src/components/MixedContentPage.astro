@@ -1,0 +1,22 @@
+---
+import type { PostOrCourse } from "../utils/content-utils";
+import PostOrCourseCard from "./PostOrCourseCard.astro";
+
+interface Props {
+	items: PostOrCourse[];
+}
+
+const { items } = Astro.props;
+
+let delay = 0;
+const interval = 50;
+---
+<div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
+    {items.map((item) => (
+        <PostOrCourseCard
+                item={item}
+                class:list="onload-animation"
+                style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+        ></PostOrCourseCard>
+    ))}
+</div>

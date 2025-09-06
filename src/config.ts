@@ -42,6 +42,12 @@ export const siteConfig: SiteConfig = {
 		target: "_blank", // Open external links in a new tab, leave blank to open in the same tab
 		rel: "noopener noreferrer",
 	},
+	pinnedCourse: {
+		enable: true, // Enable pinning courses to the top of the home page
+		courseSlug: "flutter-ship", // Specify the course slug to pin (e.g., "flutter-course")
+		// Set courseSlug to undefined or "" to disable pinning any course
+		// The pinned course will appear at the top of the first page only
+	},
 };
 
 export const navBarConfig: NavBarConfig = {
