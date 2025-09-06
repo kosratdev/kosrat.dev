@@ -1,7 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import path from "node:path";
 import { getAllCourseLessons } from "@utils/content/course-utils";
-import { getCourseUrlBySlug } from "@utils/url-utils";
+import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import CourseMeta from "./CourseMeta.astro";
 import ImageWrapper from "./misc/ImageWrapper.astro";
@@ -107,7 +108,7 @@ const coverWidth = "28%";
 					</div>
 					<ImageWrapper
 						src={course.data.image!}
-						basePath={`content/courses/${course.slug}`}
+						basePath={path.join("content/courses/", getDir(course.id))}
 						alt={`Cover Image of ${course.data.title}`}
 						class="w-full h-full object-cover"
 					/>

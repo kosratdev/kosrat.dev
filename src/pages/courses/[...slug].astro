@@ -1,6 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import path from "node:path";
 import CourseMeta from "@components/CourseMeta.astro";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import {
@@ -16,7 +18,7 @@ import {
 	generateMetaDescription,
 } from "@utils/seo-utils";
 import { cleanSlug } from "@utils/slug-utils";
-import { getCourseUrlBySlug } from "@utils/url-utils";
+import { getCourseUrlBySlug, getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 
 export async function getStaticPaths() {
@@ -107,15 +109,21 @@ const structuredData = generateCourseStructuredData(
 						totalLessons={totalLessons.length}
 					/>
 				)}
-				
-				<!-- Course Content -->
-				{course.data.type === "course" && (
-					<Markdown class="mb-6 markdown-content">
-						<Content />
-					</Markdown>
-				)}
+				{!course.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
 			</div>
 
+			<!-- Course Cover Image -->
+			{course.data.type === "course" && course.data.image &&
+				<ImageWrapper id="course-cover" src={course.data.image} basePath={path.join("content/courses/", getDir(course.id))} class="mb-8 rounded-xl banner-container onload-animation"/>
+			}
+			
+			<!-- Course Description -->
+			{course.data.type === "course" && (
+				<Markdown class="mb-6 markdown-content onload-animation">
+					<Content />
+				</Markdown>
+			)}
+			
 			<!-- Course Sections -->
 			<div class="space-y-4">
 				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
