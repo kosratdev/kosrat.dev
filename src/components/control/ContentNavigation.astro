@@ -19,6 +19,16 @@ interface Props {
 	currentSlug?: string;
 	class?: string;
 	style?: string;
+	// Analytics tracking data
+	analyticsData?: {
+		courseName?: string;
+		lessonName?: string;
+		sectionName?: string;
+		lessonNumber?: number;
+		courseLevel?: string;
+		category?: string;
+		totalLessons?: number;
+	};
 }
 
 const {
@@ -31,6 +41,7 @@ const {
 	currentSlug,
 	class: className,
 	style,
+	analyticsData,
 } = Astro.props;
 ---
 
@@ -44,6 +55,10 @@ const {
 						href={previousNav.url}
 						class="group flex items-center gap-3 p-3 border-2 border-black/10 dark:border-white/10 hover:border-black/60 dark:hover:border-white/70 rounded-lg transition-colors text-black dark:text-white shadow-none hover:shadow-none"
 						aria-label={`Previous: ${previousNav.title}`}
+						data-course={courseSlug}
+						data-content={currentSlug}
+						data-analytics={analyticsData ? JSON.stringify(analyticsData) : ''}
+						data-previous-lesson={previousNav.lesson?.data.title || ''}
 					>
 						<div class="flex-shrink-0" aria-hidden="true">
 							<svg class="w-6 h-6 text-black/60 dark:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,6 +95,7 @@ const {
 						class="group w-full flex items-center gap-3 p-3 border-2 border-green-500/30 bg-green-50 dark:bg-green-900/20 hover:border-green-500/60 dark:hover:border-green-400/60 rounded-lg transition-colors content-finish-btn"
 						data-course={courseSlug}
 						data-content={currentSlug}
+						data-analytics={analyticsData ? JSON.stringify(analyticsData) : ''}
 						aria-label={`Complete course: ${nextNav.title}`}
 					>
 						<div class="flex-1 text-right">
@@ -102,6 +118,8 @@ const {
 						class="group flex items-center gap-3 p-3 border-2 border-black/10 dark:border-white/10 hover:border-black/60 dark:hover:border-white/70 rounded-lg transition-colors text-black dark:text-white content-next-btn shadow-none hover:shadow-none"
 						data-course={courseSlug}
 						data-content={currentSlug}
+						data-analytics={analyticsData ? JSON.stringify(analyticsData) : ''}
+						data-next-lesson={nextNav.lesson?.data.title || ''}
 					>
 						<div class="flex-1 text-right">
 							<div class="text-sm text-black/60 dark:text-white/60">
@@ -134,3 +152,123 @@ const {
 		}
 	}
 </style>
+
+<script>
+	// Import analytics functions and set up navigation tracking
+	import('../../utils/analytics.js').then(({ trackLessonCompletion, trackLessonNavigation, trackCourseCompletion }) => {
+		// Track navigation events
+		function setupNavigationTracking() {
+			// Track "Next" button clicks
+			const nextBtns = document.querySelectorAll('.content-next-btn');
+			nextBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.currentTarget as HTMLElement;
+					if (!target) return;
+					
+					const analyticsDataAttr = target.getAttribute('data-analytics');
+					const nextLesson = target.getAttribute('data-next-lesson');
+					
+					if (analyticsDataAttr) {
+						try {
+							const analyticsData = JSON.parse(analyticsDataAttr);
+							
+							// Track lesson completion
+							trackLessonCompletion({
+								...analyticsData,
+								actionType: 'next',
+								completionPercentage: Math.round((analyticsData.lessonNumber / analyticsData.totalLessons) * 100),
+							});
+							
+							// Track navigation
+							if (nextLesson) {
+								trackLessonNavigation({
+									courseName: analyticsData.courseName,
+									fromLesson: analyticsData.lessonName,
+									toLesson: nextLesson,
+									navigationDirection: 'next',
+									courseLevel: analyticsData.courseLevel,
+									category: analyticsData.category,
+								});
+							}
+						} catch (error) {
+							console.error('Error tracking next navigation:', error);
+						}
+					}
+				});
+			});
+
+			// Track "Previous" button clicks
+			const prevBtns = document.querySelectorAll('.content-nav a[data-previous-lesson]');
+			prevBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.currentTarget as HTMLElement;
+					if (!target) return;
+					
+					const analyticsDataAttr = target.getAttribute('data-analytics');
+					const previousLesson = target.getAttribute('data-previous-lesson');
+					
+					if (analyticsDataAttr) {
+						try {
+							const analyticsData = JSON.parse(analyticsDataAttr);
+							
+							// Track navigation
+							if (previousLesson) {
+								trackLessonNavigation({
+									courseName: analyticsData.courseName,
+									fromLesson: analyticsData.lessonName,
+									toLesson: previousLesson,
+									navigationDirection: 'previous',
+									courseLevel: analyticsData.courseLevel,
+									category: analyticsData.category,
+								});
+							}
+						} catch (error) {
+							console.error('Error tracking previous navigation:', error);
+						}
+					}
+				});
+			});
+
+			// Track "Finish" button clicks
+			const finishBtns = document.querySelectorAll('.content-finish-btn');
+			finishBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.currentTarget as HTMLElement;
+					if (!target) return;
+					
+					const analyticsDataAttr = target.getAttribute('data-analytics');
+					
+					if (analyticsDataAttr) {
+						try {
+							const analyticsData = JSON.parse(analyticsDataAttr);
+							
+							// Track final lesson completion
+							trackLessonCompletion({
+								...analyticsData,
+								actionType: 'finish',
+								completionPercentage: 100,
+							});
+							
+							// Track course completion
+							trackCourseCompletion({
+								courseName: analyticsData.courseName,
+								level: analyticsData.courseLevel,
+								category: analyticsData.category,
+								totalLessons: analyticsData.totalLessons,
+							});
+						} catch (error) {
+							console.error('Error tracking course completion:', error);
+						}
+					}
+				});
+			});
+		}
+
+		// Set up tracking on DOM ready
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', setupNavigationTracking);
+		} else {
+			setupNavigationTracking();
+		}
+	}).catch(console.error);
+</script>

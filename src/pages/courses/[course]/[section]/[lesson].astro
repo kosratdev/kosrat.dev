@@ -261,6 +261,17 @@ const jsonLd = {
 		name: course.data.title,
 	},
 };
+
+// Prepare analytics data for client-side tracking
+const analyticsData = {
+	courseName: course.data.title,
+	lessonName: lesson.data.title,
+	sectionName: section.data.title,
+	lessonNumber: continuousLessonNumber,
+	courseLevel: course.data.level,
+	category: course.data.category,
+	totalLessons: allLessons.length,
+};
 ---
 
 <MainGridLayout 
@@ -368,9 +379,18 @@ const jsonLd = {
         progressText={`Lesson ${continuousLessonNumber} of ${allLessons.length}`}
         courseSlug={course.slug}
         currentSlug={lesson.slug}
+        analyticsData={analyticsData}
         class="onload-animation"
     />
 
     <!-- Comment section -->
     <Comment post={lesson}></Comment>
 </MainGridLayout>
+
+<script is:inline define:vars={{analyticsData}}>
+	// Import analytics functions
+	import('../../../../utils/analytics.js').then(({ trackLessonStart }) => {
+		// Track lesson start on page load
+		trackLessonStart(analyticsData);
+	}).catch(console.error);
+</script>

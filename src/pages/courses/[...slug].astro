@@ -72,6 +72,14 @@ const structuredData = structuredDataFactory.generateCourseStructuredData(
 	totalLessons,
 	sections,
 );
+
+// Prepare analytics data for client-side tracking
+const analyticsData = {
+	courseName: course.data.title,
+	level: course.data.level,
+	category: course.data.category,
+	totalLessons,
+};
 ---
 
 <MainGridLayout 
@@ -320,3 +328,70 @@ const structuredData = structuredDataFactory.generateCourseStructuredData(
 		outline-offset: 2px;
 	}
 </style>
+
+<script is:inline define:vars={{analyticsData}}>
+	// Import analytics functions
+	import('../../utils/analytics.js').then(({ trackCourseView, trackSectionToggle, trackProgressReset, trackLessonNavigation }) => {
+		// Track course view on page load
+		trackCourseView(analyticsData);
+
+		// Track section toggles
+		document.addEventListener('DOMContentLoaded', () => {
+			const sectionToggles = document.querySelectorAll('.section-toggle');
+			sectionToggles.forEach(toggle => {
+				toggle.addEventListener('click', (e) => {
+					const sectionSlug = e.currentTarget.getAttribute('data-section');
+					const sectionContent = document.getElementById(`section-content-${sectionSlug}`);
+					const isExpanding = sectionContent.classList.contains('hidden');
+					
+					// Find section title
+					const sectionTitle = e.currentTarget.querySelector('h3')?.textContent || 'Unknown Section';
+					
+					trackSectionToggle({
+						courseName: analyticsData.courseName,
+						sectionName: sectionTitle,
+						action: isExpanding ? 'expand' : 'collapse',
+						courseLevel: analyticsData.level,
+						category: analyticsData.category,
+					});
+				});
+			});
+
+			// Track lesson link clicks (navigation from course page to lesson)
+			const lessonLinks = document.querySelectorAll('.lesson-item');
+			lessonLinks.forEach(link => {
+				link.addEventListener('click', (e) => {
+					const lessonTitle = e.currentTarget.querySelector('h4')?.textContent || 'Unknown Lesson';
+					
+					trackLessonNavigation({
+						courseName: analyticsData.courseName,
+						fromLesson: 'course-overview',
+						toLesson: lessonTitle,
+						navigationDirection: 'jump',
+						courseLevel: analyticsData.level,
+						category: analyticsData.category,
+					});
+				});
+			});
+
+			// Track progress reset
+			const resetBtn = document.getElementById('reset-progress-btn');
+			if (resetBtn) {
+				resetBtn.addEventListener('click', () => {
+					// Get current progress before reset using the correct key format
+					const courseSlug = window.location.pathname.split('/courses/')[1].replace(/\/$/, '');
+					const courseProgress = JSON.parse(localStorage.getItem(`course_progress_${courseSlug}`) || '{}');
+					const completedLessons = courseProgress.completedLessons?.length || 0;
+					
+					trackProgressReset({
+						courseName: analyticsData.courseName,
+						level: analyticsData.level,
+						category: analyticsData.category,
+						lessonsCompleted: completedLessons,
+						totalLessons: analyticsData.totalLessons,
+					});
+				});
+			}
+		});
+	}).catch(console.error);
+</script>
