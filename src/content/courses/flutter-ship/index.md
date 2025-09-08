@@ -2,7 +2,7 @@
 type: "course"
 title: "Flutter Ship: Production Ready App"
 description: "Flutter Ship is a comprehensive course dedicated to guiding Flutter developers through the journey of building production-ready applications."
-image: "flutter-ship/assets/cover.webp"
+image: "assets/cover.webp"
 level: "Intermediate"
 category: "Flutter"
 published: 2025-05-19

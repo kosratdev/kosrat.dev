@@ -27,7 +27,7 @@ const contentCache: ContentCache = {
 // Cache TTL in milliseconds (5 minutes for development, infinite for production)
 const CACHE_TTL =
 	process.env.NODE_ENV === "development"
-		? 5 * 60 * 1000
+		? 0 // Disable cache in development
 		: Number.POSITIVE_INFINITY;
 
 /**

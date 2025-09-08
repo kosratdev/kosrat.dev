@@ -12,7 +12,7 @@ The solution is to use short-lived branches for every new piece of work, whether
 
 The core idea is illustrated below:
 
-![Github Flow](../assets/github-flow.webp)
+![Github Flow](assets/github-flow.webp)
 
 **Branch Types Explained**
 
