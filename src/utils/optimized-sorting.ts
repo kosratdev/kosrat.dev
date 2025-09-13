@@ -109,7 +109,9 @@ function sortWithCache<T>(
 	sortFn: (a: T, b: T) => number,
 	cacheKey?: string,
 ): T[] {
-	if (cacheKey && sortCache.has(cacheKey)) {
+	const isProduction = process.env.NODE_ENV === "production";
+
+	if (isProduction && cacheKey && sortCache.has(cacheKey)) {
 		return sortCache.get(cacheKey) as T[];
 	}
 
