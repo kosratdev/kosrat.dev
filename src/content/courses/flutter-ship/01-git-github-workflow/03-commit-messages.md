@@ -1,13 +1,10 @@
 ---
 type: "lesson"
-title: "Commit Messages test"
+title: "Commit Messages"
 order: 3
 published: 2025-09-03
 draft: true
-image: "../assets/cover.webp"
 ---
-
-# Commit Messages
 
 Learn how to write clear, consistent, and meaningful commit messages that help your team understand changes at a glance.
 

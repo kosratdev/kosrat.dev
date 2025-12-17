@@ -6,11 +6,11 @@ published: 2025-09-03
 draft: true
 ---
 
-More than two decades ago, **Git** emerged as a version control system (**VCS**) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration and sharing.
+More than two decades ago, **Git** emerged as a version control system (**VCS**) to facilitate teamwork and track changes in a version history. Nowadays, Git is an essential tool for software developers, especially for those working in a team. Complementing Git, platforms like **GitHub** provide hosting for Git repositories, enabling collaboration, sharing, CI/CD pipelines and more.
 
-In this post, I will show you how to setup a **production-ready Git & GitHub workflow** for your project. As you may know, this article is a part of the [**Flutter Ship**](../) series, which guides you in shipping a production-ready Flutter app. However, these principles can be applied to **any language or framework**.
+In this section, I will show you how to setup a **production-ready Git & GitHub workflow** for your project. As you know, this is the first section of the [**Flutter Ship**](../) course, which guides you in shipping a production-ready Flutter app. However, these principles can be applied to **any language or framework**.
 
-By the end of this article, you will learn the following:
+By the end of this section, you will learn the following:
 
 1.  How to implement a simple but effective **branching strategy**.
 2.  How to adopt a **commit message standard** for a clean history and automated changelogs.
