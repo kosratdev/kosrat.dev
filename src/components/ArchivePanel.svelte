@@ -9,9 +9,9 @@ import {
 	getPostUrlBySlug,
 } from "../utils/url-utils";
 
-export let categories: string[];
+export let categories: string[] = [];
 export let sortedContent: ArchiveContentItem[] = [];
-export let tags: string[];
+export let tags: string[] = [];
 
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
