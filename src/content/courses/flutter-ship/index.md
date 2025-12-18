@@ -6,7 +6,7 @@ image: "assets/cover.webp"
 level: "Intermediate"
 category: "Flutter"
 published: 2025-05-19
-draft: true
+draft: false
 ---
 
 # Course Overview
